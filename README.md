@@ -4,7 +4,8 @@
 
 # Functionality
 
-Provide autocomplete feature for css variables.
+- Provide autocomplete feature for css variables.
+- Color preview
 
 You need to provide your css that contains variables definition.
 
