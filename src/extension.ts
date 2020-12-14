@@ -5,6 +5,21 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as postcss from 'postcss'
+import * as isColor from 'is-color'
+
+enum ValueKind {
+  COLOR,
+  OTHER,
+}
+
+const getValueKind = (str: string): ValueKind => {
+  if (isColor(str)) {
+    return ValueKind.COLOR
+  }
+
+  return ValueKind.OTHER
+}
 
 export function activate(context: vscode.ExtensionContext) {
   const provider1 = vscode.languages.registerCompletionItemProvider(
@@ -35,17 +50,23 @@ export function activate(context: vscode.ExtensionContext) {
           new vscode.Range(lastCharPos, position)
         )
 
-        const variableRegex = /[;\s]--([a-zA-Z-\d]+):/g
-        const getVariables = async (line: string) => {
-          const result = line.match(variableRegex)
+        filesToLookup.forEach((relativePath) => {
+          const content = fs.readFileSync(path.join(folderPath, relativePath), {
+            encoding: 'utf8',
+          })
 
-          if (result) {
-            result.forEach((str) => {
-              const variable = str.slice(1, str.length - 1)
+          const parsedCSS = postcss.parse(content)
+
+          parsedCSS.walkDecls((decl) => {
+            if (decl.prop.startsWith('--')) {
+              console.log(decl.prop)
+              const variable = decl.prop
               const completion = new vscode.CompletionItem(variable)
 
               completion.kind = vscode.CompletionItemKind.Variable
-              completion.documentation = 'ahiahi'
+              completion.documentation = decl.value
+
+              completion.detail = decl.value
 
               if (previousStr === '--') {
                 completion.insertText = variable.substring(2)
@@ -54,17 +75,14 @@ export function activate(context: vscode.ExtensionContext) {
               } else {
                 completion.insertText = `var(${variable})`
               }
+
+              if (getValueKind(decl.value) === ValueKind.COLOR) {
+                completion.kind = vscode.CompletionItemKind.Color
+              }
+
               colors.push(completion)
-            })
-          }
-        }
-
-        filesToLookup.forEach((relativePath) => {
-          const content = fs.readFileSync(path.join(folderPath, relativePath), {
-            encoding: 'utf8',
+            }
           })
-
-          getVariables(content)
         })
 
         return colors
