@@ -5,21 +5,10 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
-import * as postcss from 'postcss'
-import * as isColor from 'is-color'
 
-enum ValueKind {
-  COLOR,
-  OTHER,
-}
-
-const getValueKind = (str: string): ValueKind => {
-  if (isColor(str)) {
-    return ValueKind.COLOR
-  }
-
-  return ValueKind.OTHER
-}
+import processCSSContent from './languages/css'
+import processSCSSContent from './languages/scss'
+import processLESSContent from './languages/less'
 
 export function activate(context: vscode.ExtensionContext) {
   const provider1 = vscode.languages.registerCompletionItemProvider(
@@ -51,38 +40,23 @@ export function activate(context: vscode.ExtensionContext) {
         )
 
         filesToLookup.forEach((relativePath) => {
+          const fileExtension = path.extname(relativePath)
+
           const content = fs.readFileSync(path.join(folderPath, relativePath), {
             encoding: 'utf8',
           })
 
-          const parsedCSS = postcss.parse(content)
-
-          parsedCSS.walkDecls((decl) => {
-            if (decl.prop.startsWith('--')) {
-              console.log(decl.prop)
-              const variable = decl.prop
-              const completion = new vscode.CompletionItem(variable)
-
-              completion.kind = vscode.CompletionItemKind.Variable
-              completion.documentation = decl.value
-
-              completion.detail = decl.value
-
-              if (previousStr === '--') {
-                completion.insertText = variable.substring(2)
-              } else if (previousStr === 'r(') {
-                completion.insertText = variable
-              } else {
-                completion.insertText = `var(${variable})`
-              }
-
-              if (getValueKind(decl.value) === ValueKind.COLOR) {
-                completion.kind = vscode.CompletionItemKind.Color
-              }
-
-              colors.push(completion)
-            }
-          })
+          switch (fileExtension) {
+            case '.css':
+              processCSSContent(content, colors, previousStr)
+              break
+            case '.scss':
+              processSCSSContent(content, colors, previousStr)
+              break
+            case '.less':
+              processLESSContent(content, colors, previousStr)
+              break
+          }
         })
 
         return colors
