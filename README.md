@@ -4,6 +4,7 @@
 
 # Functionality
 
+- Support CSS/SCSS/LESS/POSTCSS syntax.
 - Provide autocomplete feature for css variables.
 - Color preview
 
