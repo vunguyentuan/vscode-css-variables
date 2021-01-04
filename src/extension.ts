@@ -6,22 +6,63 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import processCSSContent from './languages/css'
-import processSCSSContent from './languages/scss'
-import processLESSContent from './languages/less'
+import { CompletionItem } from 'vscode'
+import { createCompletionItem } from './utils'
+import {
+  getCSSLanguageService,
+  getLESSLanguageService,
+  getSCSSLanguageService,
+  TextDocument,
+} from 'vscode-css-languageservice'
+import { Symbols } from 'vscode-css-languageservice/lib/umd/parser/cssSymbolScope.js'
+
+interface doCompleteProps {
+  content: string
+  output: Array<CompletionItem>
+  previousStr: string
+  fileExtension: string
+}
+
+const getLanguageService = (fileExtension: string) => {
+  switch (fileExtension) {
+    case '.less':
+      return getLESSLanguageService
+    case '.scss':
+      return getSCSSLanguageService
+    default:
+      return getCSSLanguageService
+  }
+}
+
+const doComplete = ({
+  content,
+  output,
+  previousStr,
+  fileExtension,
+}: doCompleteProps) => {
+  try {
+    const languageService = getLanguageService(fileExtension)
+    const service = languageService()
+
+    const styleSheet = service.parseStylesheet(
+      TextDocument.create('test://test/test.css', 'css', 0, content)
+    )
+
+    const symbolContext = new Symbols(styleSheet)
+
+    symbolContext.global.symbols.forEach((symbol: any) => {
+      if (symbol.name.startsWith('--')) {
+        output.push(
+          createCompletionItem(symbol.name, symbol.value, previousStr)
+        )
+      }
+    })
+  } catch (error) {}
+}
 
 export function activate(context: vscode.ExtensionContext) {
   const provider1 = vscode.languages.registerCompletionItemProvider(
-    [
-      'typescriptreact',
-      'javascriptreact',
-      'vue',
-      'vue-html',
-      'vue-postcss',
-      'css',
-      'scss',
-      'less',
-    ],
+    ['vue', 'vue-html', 'vue-postcss', 'css', 'scss', 'less'],
     {
       async provideCompletionItems(document, position, token, context) {
         const workspaceFolder = vscode.workspace.workspaceFolders || []
@@ -32,13 +73,15 @@ export function activate(context: vscode.ExtensionContext) {
 
         const lastCharPos = new vscode.Position(
           position.line,
-          Math.max(position.character - 2, 0)
+          0
+          // Math.max(position.character - 2, 0)
         )
 
         const previousStr = document.getText(
           new vscode.Range(lastCharPos, position)
         )
 
+        console.log('trigger', previousStr, context)
         filesToLookup.forEach((relativePath) => {
           const fileExtension = path.extname(relativePath)
 
@@ -46,17 +89,7 @@ export function activate(context: vscode.ExtensionContext) {
             encoding: 'utf8',
           })
 
-          switch (fileExtension) {
-            case '.css':
-              processCSSContent(content, colors, previousStr)
-              break
-            case '.scss':
-              processSCSSContent(content, colors, previousStr)
-              break
-            case '.less':
-              processLESSContent(content, colors, previousStr)
-              break
-          }
+          doComplete({ content, output: colors, previousStr, fileExtension })
         })
 
         return colors

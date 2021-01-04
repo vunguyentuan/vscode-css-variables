@@ -13,7 +13,6 @@
     "onLanguage:vue",
     "onLanguage:vue-html",
     "onLanguage:scss",
-    "onLanguage:typescriptreact",
     "onLanguage:less",
     "onLanguage:css",
     "onLanguage:vue-postcss"
@@ -45,15 +44,11 @@
   },
   "dependencies": {
     "is-color": "^1.0.2",
-    "less": "^4.0.0",
-    "postcss": "^8.2.1",
-    "query-ast": "^1.0.3",
-    "scss-parser": "^1.0.4"
+    "vscode-css-languageservice": "^5.0.2"
   },
   "devDependencies": {
     "@types/is-color": "^1.0.0",
     "@types/node": "^12.12.0",
-    "@types/scss-parser": "^1.0.0",
     "@types/vscode": "^1.47.0",
     "@typescript-eslint/eslint-plugin": "^3.0.2",
     "@typescript-eslint/parser": "^3.0.2",

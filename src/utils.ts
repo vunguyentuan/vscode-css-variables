@@ -23,7 +23,7 @@ export const createCompletionItem = (
   const variableWithoutDash = variable.substring(2)
   const completion = new vscode.CompletionItem(variable)
 
-  completion.sortText = variableWithoutDash
+  // completion.sortText = variableWithoutDash
   completion.filterText = variableWithoutDash
   completion.kind = vscode.CompletionItemKind.Variable
   completion.documentation = propertyValue
