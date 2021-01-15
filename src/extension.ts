@@ -68,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
         const workspaceFolder = vscode.workspace.workspaceFolders || []
         const config = vscode.workspace.getConfiguration('cssVariables')
         const filesToLookup = (config.get('lookupFiles') || []) as string[]
-        const folderPath = workspaceFolder[0].uri.toString().split(':')[1]
+        const folderPath = workspaceFolder[0].uri.fsPath
         const colors: vscode.CompletionItem[] = []
 
         const lastCharPos = new vscode.Position(
