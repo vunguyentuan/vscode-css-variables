@@ -16,7 +16,8 @@
     "onLanguage:scss",
     "onLanguage:less",
     "onLanguage:css",
-    "onLanguage:vue-postcss"
+    "onLanguage:vue-postcss",
+    "onCommand:css-variable-snippets.createImporter"
   ],
   "icon": "icon/css.png",
   "repository": {
