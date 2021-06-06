@@ -35,7 +35,7 @@ export const createCompletionItem = (
   } else if (previousStr === 'r(') {
     completion.insertText = variable
   } else {
-    completion.insertText = `var(${variable})`
+    completion.insertText = `var(${variable});`
   }
 
   if (getValueKind(propertyValue) === ValueKind.COLOR) {
