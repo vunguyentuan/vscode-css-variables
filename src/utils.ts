@@ -41,6 +41,5 @@ export const createCompletionItem = (
   if (getValueKind(propertyValue) === ValueKind.COLOR) {
     completion.kind = vscode.CompletionItemKind.Color
   }
-
   return completion
 }

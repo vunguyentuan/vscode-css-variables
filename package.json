@@ -2,7 +2,7 @@
   "name": "vscode-css-variables",
   "version": "1.4.3",
   "displayName": "CSS Variable Autocomplete",
-  "description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
+  "description": "Autocomplete CSS Variable support CSS, SCSS, LESS",
   "publisher": "vunguyentuan",
   "engines": {
     "vscode": "^1.47.0"
@@ -31,6 +31,12 @@
     "watch": "tsc -w -p ./"
   },
   "contributes": {
+    "commands": [
+      {
+        "command": "css-variable-snippets.createImporter",
+        "title": "Global CSS Autocomplete"
+      }
+    ],
     "configuration": {
       "title": "CSS Variables",
       "properties": {
