@@ -1,6 +1,6 @@
 {
   "name": "vscode-css-variables",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "displayName": "SCSS Variable Autocomplete",
   "description": "Autocomplete CSS Variable support CSS, SCSS, LESS",
   "publisher": "flamurbeqiraj",
