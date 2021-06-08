@@ -15,6 +15,9 @@ import {
   TextDocument,
 } from 'vscode-css-languageservice'
 import { Symbols } from 'vscode-css-languageservice/lib/umd/parser/cssSymbolScope.js'
+const appDir = '/.vscode/';
+const appDirBCK = '\\.vscode\\';
+const appFile = 'settings.json';
 
 interface doCompleteProps {
   content: string
@@ -57,10 +60,52 @@ const doComplete = ({
         )
       }
     })
-  } catch (error) {}
+  } catch (error) { }
 }
 
 export function activate(context: vscode.ExtensionContext) {
+
+  let disposable = vscode.commands.registerCommand('css-variable-snippets.createImporter', () => {
+    const WKfolder = vscode.workspace.workspaceFolders;
+    if (WKfolder === undefined) {
+      vscode.window.showInformationMessage('Please open a project folder first.')
+      return;
+    }
+    WKfolder.map(item => {
+      if (fs.existsSync(item.uri.fsPath + appDir + appFile)) {
+        vscode.workspace.openTextDocument(item.uri.fsPath + appDirBCK + appFile).then(doc => {
+          vscode.window.showTextDocument(doc)
+          vscode.window.showInformationMessage('Opening configuration file.');
+        })
+      } else {
+        if (!fs.existsSync(item.uri.fsPath + appDir)) {
+          fs.mkdir(item.uri.fsPath + appDir, { recursive: true }, (err) => {
+            if (err) throw err;
+
+            var data = '{' +
+              '\n\t"cssVariables.lookupFiles": [' +
+              '\n\t\t"src/theme/axians.scss"' +
+              '\n\t]' +
+              '\n}';
+
+            fs.writeFile(item.uri.fsPath + appDir + appFile, data, function (err) {
+              if (err) {
+                vscode.window.showInformationMessage('Permission error!');
+                return console.log(err);
+              }
+              vscode.workspace.openTextDocument(item.uri.fsPath + appDirBCK + appFile).then(doc => {
+                vscode.window.showTextDocument(doc)
+                vscode.window.showInformationMessage('Configuration file successfuly generated.');
+              })
+            });
+
+          })
+          return
+        }
+      }
+    })
+  });
+
   const provider1 = vscode.languages.registerCompletionItemProvider(
     ['vue', 'vue-html', 'vue-postcss', 'css', 'scss', 'less'],
     {
@@ -81,7 +126,6 @@ export function activate(context: vscode.ExtensionContext) {
           new vscode.Range(lastCharPos, position)
         )
 
-        console.log('trigger', previousStr, context)
         filesToLookup.forEach((relativePath) => {
           const fileExtension = path.extname(relativePath)
 
@@ -91,6 +135,8 @@ export function activate(context: vscode.ExtensionContext) {
 
           doComplete({ content, output: colors, previousStr, fileExtension })
         })
+
+        // console.log(colors);
 
         return colors
       },
