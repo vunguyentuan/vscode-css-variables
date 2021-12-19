@@ -1,0 +1,22 @@
+{
+	"name": "css-variablesclient",
+	"description": "VSCode part of a language server",
+	"author": "Vu Nguyen",
+	"license": "MIT",
+	"version": "0.0.1",
+	"publisher": "vscode",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/vunguyentuan/vscode-css-variables.git"
+	},
+	"engines": {
+		"vscode": "^1.52.0"
+	},
+	"dependencies": {
+		"vscode-languageclient": "^7.0.0"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.52.0",
+		"@vscode/test-electron": "^1.6.1"
+	}
+}
