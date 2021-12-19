@@ -11,9 +11,9 @@ import {
   TextDocumentPositionParams,
   TextDocumentSyncKind,
   InitializeResult,
-  TextEdit,
   Range,
   Position,
+  ColorInformation,
 } from 'vscode-languageserver/node';
 
 import * as fs from 'fs';
@@ -22,6 +22,7 @@ import {
   getCSSLanguageService,
   getLESSLanguageService,
   getSCSSLanguageService,
+  Location,
 } from 'vscode-css-languageservice';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -41,9 +42,16 @@ let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
 
-type CSSVariable = {
+type CSSSymbol = {
   name: string
   value: string
+  node: any
+}
+
+type CSSVariable = {
+  symbol: CSSSymbol
+  definition: Location
+  color?: ColorInformation
 }
 
 const cachedVariables: Record<string, Map<string, CSSVariable>> = {};
@@ -67,15 +75,18 @@ function getCurrentWord(document: TextDocument, offset: number): string {
   while (left >= 0 && ' \t\n\r":{[()]},*>+'.indexOf(text.charAt(left)) === -1) {
     left--;
   }
-  
-  while (right <= text.length && ' \t\n\r":{[()]},*>+'.indexOf(text.charAt(right)) === -1) {
+
+  while (
+    right <= text.length &&
+    ' \t\n\r":{[()]},*>+'.indexOf(text.charAt(right)) === -1
+  ) {
     right++;
   }
 
   return text.substring(left, right);
 }
 
-function isInFunctionExpression(word: string) : boolean {
+function isInFunctionExpression(word: string): boolean {
   if (word.length < 1) {
     return false;
   }
@@ -95,13 +106,28 @@ const parseCSSVariablesFromText = ({
     const languageService = getLanguageService(fileExtension);
     const service = languageService();
 
-    const styleSheet = service.parseStylesheet(
-      TextDocument.create('test://test/test.css', 'css', 0, content)
+    const document = TextDocument.create(
+      `file://${filePath}`,
+      'css',
+      0,
+      content
     );
 
-    const symbolContext = new Symbols(styleSheet);
+    const stylesheet = service.parseStylesheet(document);
 
-    symbolContext.global.symbols.forEach((symbol: any) => {
+    const symbolContext = new Symbols(stylesheet);
+
+    const documentColors = service.findDocumentColors(document, stylesheet);
+
+    console.log(documentColors);
+
+    const result: ColorInformation[] = []
+    ;(stylesheet as any).accept((node: any) => {
+      console.log('node', node);
+      return true;
+    });
+
+    symbolContext.global.symbols.forEach((symbol: CSSSymbol) => {
       if (symbol.name.startsWith('--')) {
         if (!cachedVariables[filePath]) {
           cachedVariables[filePath] = new Map();
@@ -110,9 +136,22 @@ const parseCSSVariablesFromText = ({
           cachedVariables['all'] = new Map();
         }
 
+        console.log(symbol);
+
+        const variable: CSSVariable = {
+          symbol,
+          definition: {
+            uri: filePath,
+            range: Range.create(
+              document.positionAt(symbol.node.offset),
+              document.positionAt(symbol.node.end)
+            ),
+          },
+        };
+
         // add to cache
-        cachedVariables['all'].set(symbol.name, symbol);
-        cachedVariables[filePath].set(symbol.name, symbol);
+        cachedVariables['all'].set(symbol.name, variable);
+        cachedVariables[filePath].set(symbol.name, variable);
       }
     });
   } catch (error) {
@@ -179,6 +218,8 @@ connection.onInitialize((params: InitializeParams) => {
       completionProvider: {
         resolveProvider: true,
       },
+      definitionProvider: true,
+      colorProvider: true,
     },
   };
   if (hasWorkspaceFolderCapability) {
@@ -348,55 +389,87 @@ connection.onCompletion(
 
     const items: CompletionItem[] = [];
     cachedVariables['all'].forEach((variable) => {
-      const insertText = isFunctionCall ? variable.name : `var(${variable.name})`;
+      const varSymbol = variable.symbol;
+      const insertText = isFunctionCall
+        ? varSymbol.name
+        : `var(${varSymbol.name})`;
       const completion: CompletionItem = {
-        label: variable.name,
-        detail: variable.value,
-        documentation: variable.value,
+        label: varSymbol.name,
+        detail: varSymbol.value,
+        documentation: varSymbol.value,
         insertText,
         // textEdit: TextEdit.replace(editRange, insertText),
-        kind: isColor(variable.value)
+        kind: isColor(varSymbol.value)
           ? CompletionItemKind.Color
           : CompletionItemKind.Variable,
-          sortText: 'z'
+        sortText: 'z',
       };
 
       if (isFunctionCall) {
-        completion.detail = variable.value;
+        completion.detail = varSymbol.value;
       }
 
       items.push(completion);
     });
 
-    console.log('completion', items);
     return items;
-
-    // return [
-    //   {
-    //     label: 'TypeScript',
-    //     kind: CompletionItemKind.Text,
-    //     data: 1,
-    //   },
-    //   {
-    //     label: 'JavaScript',
-    //     kind: CompletionItemKind.Text,
-    //     data: 2,
-    //   },
-    // ];
   }
 );
 
 // This handler resolves additional information for the item selected in
 // the completion list.
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
-  // if (item.data === 1) {
-  //   item.detail = 'TypeScript details';
-  //   item.documentation = 'TypeScript documentation';
-  // } else if (item.data === 2) {
-  //   item.detail = 'JavaScript details';
-  //   item.documentation = 'JavaScript documentation';
-  // }
   return item;
+});
+
+connection.onDocumentColor((params) => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) {
+    return [];
+  }
+
+  const colors: ColorInformation[] = [];
+
+  // cachedVariables['all'].forEach(variable => {
+  //     const color = Color.parse(variable.value);
+  //     const range = document.getWordRangeAtPosition(
+  //         document.positionAt(variable.value),
+  //         /\b[A-Z]{2,}\b/g
+  //     );
+  //     return {
+  //         color,
+  //         range,
+  //     };
+  // }
+
+  return colors;
+});
+
+connection.onDefinition((params) => {
+  const doc = documents.get(params.textDocument.uri);
+
+  if (!doc) {
+    return null;
+  }
+
+  const offset = doc.offsetAt(params.position);
+  const currentWord = getCurrentWord(doc, offset);
+
+  if (!currentWord)
+    return null;
+
+  const nornalizedWord = currentWord.slice(1);
+
+  console.log({nornalizedWord});
+
+  const definition = null;
+  const cssVariable = cachedVariables['all'].get(nornalizedWord);
+
+  if (cssVariable) {
+    return cssVariable.definition;
+  }
+
+  return definition;
 });
 
 // Make the text document manager listen on the connection
