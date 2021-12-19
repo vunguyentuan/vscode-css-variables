@@ -1,8 +1,6 @@
 import {
   createConnection,
   TextDocuments,
-  Diagnostic,
-  DiagnosticSeverity,
   ProposedFeatures,
   InitializeParams,
   DidChangeConfigurationNotification,
@@ -12,7 +10,6 @@ import {
   TextDocumentSyncKind,
   InitializeResult,
   Range,
-  Position,
   ColorInformation,
 } from 'vscode-languageserver/node';
 
@@ -191,6 +188,8 @@ const parseAndSyncVariables = (workspaceFolders: string[]) => {
 
 connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
+  // const settings = await getDocumentSettings(textDocument.uri);
+
   parseAndSyncVariables(
     params.workspaceFolders
       ?.map((folder) => uriToPath(folder.uri) || '')
@@ -270,9 +269,6 @@ connection.onDidChangeConfiguration((change) => {
       (change.settings.languageServerExample || defaultSettings)
     );
   }
-
-  // Revalidate all open text documents
-  documents.all().forEach(validateTextDocument);
 });
 
 function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
@@ -295,59 +291,6 @@ documents.onDidClose((e) => {
   documentSettings.delete(e.document.uri);
 });
 
-// The content of a text document has changed. This event is emitted
-// when the text document first opened or when its content has changed.
-documents.onDidChangeContent((change) => {
-  validateTextDocument(change.document);
-});
-
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  // In this simple example we get the settings for every validate run.
-  const settings = await getDocumentSettings(textDocument.uri);
-
-  // The validator creates diagnostics for all uppercase words length 2 and more
-  const text = textDocument.getText();
-  const pattern = /\b[A-Z]{2,}\b/g;
-  let m: RegExpExecArray | null;
-
-  let problems = 0;
-  const diagnostics: Diagnostic[] = [];
-  while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
-    problems++;
-    const diagnostic: Diagnostic = {
-      severity: DiagnosticSeverity.Warning,
-      range: {
-        start: textDocument.positionAt(m.index),
-        end: textDocument.positionAt(m.index + m[0].length),
-      },
-      message: `${m[0]} is all uppercase.`,
-      source: 'ex',
-    };
-    if (hasDiagnosticRelatedInformationCapability) {
-      diagnostic.relatedInformation = [
-        {
-          location: {
-            uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range),
-          },
-          message: 'Spelling matters',
-        },
-        {
-          location: {
-            uri: textDocument.uri,
-            range: Object.assign({}, diagnostic.range),
-          },
-          message: 'Particularly for names',
-        },
-      ];
-    }
-    diagnostics.push(diagnostic);
-  }
-
-  // Send the computed diagnostics to VSCode.
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
-
 connection.onDidChangeWatchedFiles((_change) => {
   // update cached variables
   _change.changes.forEach((change) => {
@@ -365,10 +308,6 @@ connection.onDidChangeWatchedFiles((_change) => {
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
   (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-    // The pass parameter contains the position of the text document in
-    // which code complete got requested. For the example we ignore this
-    // info and always provide the same completion items.
-
     const doc = documents.get(_textDocumentPosition.textDocument.uri);
 
     if (!doc) {
@@ -379,13 +318,6 @@ connection.onCompletion(
     const currentWord = getCurrentWord(doc, offset);
 
     const isFunctionCall = isInFunctionExpression(currentWord);
-    const editRange = Range.create(
-      Position.create(
-        _textDocumentPosition.position.line,
-        _textDocumentPosition.position.character - currentWord.length - 2
-      ),
-      _textDocumentPosition.position
-    );
 
     const items: CompletionItem[] = [];
     cachedVariables['all'].forEach((variable) => {
@@ -422,7 +354,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   return item;
 });
 
-connection.onDocumentColor((params) => {
+connection.onDocumentColor((params): ColorInformation[] => {
   const document = documents.get(params.textDocument.uri);
   if (!document) {
     return [];
@@ -442,6 +374,8 @@ connection.onDocumentColor((params) => {
   //     };
   // }
 
+  console.log("on document color");
+
   return colors;
 });
 
@@ -459,8 +393,6 @@ connection.onDefinition((params) => {
     return null;
 
   const nornalizedWord = currentWord.slice(1);
-
-  console.log({nornalizedWord});
 
   const definition = null;
   const cssVariable = cachedVariables['all'].get(nornalizedWord);

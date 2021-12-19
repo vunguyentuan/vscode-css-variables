@@ -60,6 +60,7 @@ export function activate(context: ExtensionContext) {
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.css'),
         workspace.createFileSystemWatcher('**/*.scss'),
+        workspace.createFileSystemWatcher('**/*.sass'),
         workspace.createFileSystemWatcher('**/*.less'),
       ],
     },

@@ -5,7 +5,8 @@
   "description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
   "publisher": "vunguyentuan",
   "engines": {
-    "vscode": "^1.47.0"
+    "vscode": "^1.47.0",
+    "node": "^14.18.2"
   },
   "categories": [
     "Other"
@@ -22,8 +23,7 @@
     "onLanguage:javascriptreact",
     "onLanguage:typescript",
     "onLanguage:typescriptreact",
-    "onLanguage:source.css.styled",
-    "onLanguage:plaintext"
+    "onLanguage:source.css.styled"
   ],
   "icon": "icon/css.png",
   "repository": {

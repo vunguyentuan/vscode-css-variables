@@ -9,7 +9,7 @@
 	},
 	"include": [
 		"src"
-, "server/src/extension.ts", "server/src/utils.ts"	],
+	],
 	"exclude": [
 		"node_modules",
 		".vscode-test"
