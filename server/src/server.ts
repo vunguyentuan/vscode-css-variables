@@ -165,6 +165,7 @@ const parseAndSyncVariables = (
       onlyFiles: true,
       cwd: folderPath,
       ignore: settings.blacklistFolders,
+      absolute: true,
     }).then((files) => {
       files.forEach((filePath) => {
         const content = fs.readFileSync(filePath, 'utf8');
