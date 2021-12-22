@@ -12,6 +12,7 @@
 		"url": "https://github.com/vunguyentuan/vscode-css-variables.git"
 	},
 	"dependencies": {
+		"fast-glob": "^3.2.7",
 		"vscode-css-languageservice": "^5.1.9",
 		"vscode-languageserver": "^7.0.0",
 		"vscode-languageserver-textdocument": "^1.0.1"

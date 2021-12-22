@@ -11,10 +11,13 @@ import {
   InitializeResult,
   Range,
   ColorInformation,
+  FileChangeType,
 } from 'vscode-languageserver/node';
 
 import * as fs from 'fs';
 import * as path from 'path';
+import fastGlob from 'fast-glob';
+
 import {
   getCSSLanguageService,
   getLESSLanguageService,
@@ -58,6 +61,7 @@ export const getLanguageService = (fileExtension: string) => {
     case '.less':
       return getLESSLanguageService;
     case '.scss':
+    case '.sass':
       return getSCSSLanguageService;
     default:
       return getCSSLanguageService;
@@ -114,15 +118,13 @@ const parseCSSVariablesFromText = ({
 
     const symbolContext = new Symbols(stylesheet);
 
-    const documentColors = service.findDocumentColors(document, stylesheet);
+    // const documentColors = service.findDocumentColors(document, stylesheet);
 
-    console.log(documentColors);
-
-    const result: ColorInformation[] = []
-    ;(stylesheet as any).accept((node: any) => {
-      console.log('node', node);
-      return true;
-    });
+    // const result: ColorInformation[] = []
+    // ;(stylesheet as any).accept((node: any) => {
+    //   console.log('node', node);
+    //   return true;
+    // });
 
     symbolContext.global.symbols.forEach((symbol: CSSSymbol) => {
       if (symbol.name.startsWith('--')) {
@@ -132,8 +134,6 @@ const parseCSSVariablesFromText = ({
         if (!cachedVariables['all']) {
           cachedVariables['all'] = new Map();
         }
-
-        console.log(symbol);
 
         const variable: CSSVariable = {
           symbol,
@@ -147,54 +147,46 @@ const parseCSSVariablesFromText = ({
         };
 
         // add to cache
-        cachedVariables['all'].set(symbol.name, variable);
+        cachedVariables['all']?.set(symbol.name, variable);
         cachedVariables[filePath].set(symbol.name, variable);
       }
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
-const blacklistFolders = ['node_modules', 'bower_components', '.git'];
-
-const parseAndSyncVariables = (workspaceFolders: string[]) => {
+const parseAndSyncVariables = (
+  workspaceFolders: string[],
+  settings = globalSettings
+) => {
   workspaceFolders.forEach((folderPath) => {
-    const filesToLookup = fs.readdirSync(folderPath, { withFileTypes: true });
-
-    filesToLookup.forEach((relativePath) => {
-      if (!blacklistFolders.includes(relativePath.name)) {
-        relativePath.isDirectory() &&
-          parseAndSyncVariables([path.join(folderPath, relativePath.name)]);
-
-        if (
-          relativePath.isFile() &&
-          (relativePath.name.endsWith('.less') ||
-            relativePath.name.endsWith('.scss') ||
-            relativePath.name.endsWith('.css'))
-        ) {
-          const filePath = path.join(folderPath, relativePath.name);
-          const content = fs.readFileSync(filePath, 'utf8');
-
-          parseCSSVariablesFromText({
-            content,
-            filePath,
-          });
-        }
-      }
+    fastGlob(settings.lookupFiles, {
+      onlyFiles: true,
+      cwd: folderPath,
+      ignore: settings.blacklistFolders,
+    }).then((files) => {
+      files.forEach((filePath) => {
+        const content = fs.readFileSync(filePath, 'utf8');
+        parseCSSVariablesFromText({
+          content,
+          filePath,
+        });
+      });
     });
   });
 };
 
-connection.onInitialize((params: InitializeParams) => {
+connection.onInitialize(async (params: InitializeParams) => {
   const capabilities = params.capabilities;
-  // const settings = await getDocumentSettings(textDocument.uri);
+  const settings = await getDocumentSettings();
 
-  parseAndSyncVariables(
-    params.workspaceFolders
-      ?.map((folder) => uriToPath(folder.uri) || '')
-      .filter((path) => !!path) || []
-  );
+  const validFolders = params.workspaceFolders
+    ?.map((folder) => uriToPath(folder.uri) || '')
+    .filter((path) => !!path);
+
+  // parse and sync variables
+  parseAndSyncVariables(validFolders || [], settings);
 
   // Does the client support the `workspace/configuration` request?
   // If not, we fall back using global settings.
@@ -247,40 +239,70 @@ connection.onInitialized(() => {
 });
 
 // The example settings
-interface ExampleSettings {
-  maxNumberOfProblems: number
+interface CSSVariablesSettings {
+  lookupFiles: string[]
+  blacklistFolders: string[]
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
 // Please note that this is not the case when using this server with the client provided in this example
 // but could happen with other clients.
-const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
-let globalSettings: ExampleSettings = defaultSettings;
+const defaultSettings: CSSVariablesSettings = {
+  lookupFiles: ['**/*.less', '**/*.scss', '**/*.sass', '**/*.css'],
+  blacklistFolders: [
+    '**/.git',
+    '**/.svn',
+    '**/.hg',
+    '**/CVS',
+    '**/.DS_Store',
+    '**/.git',
+    '**/node_modules',
+    '**/bower_components',
+    '**/tmp',
+    '**/dist',
+    '**/tests',
+  ],
+};
+let globalSettings: CSSVariablesSettings = defaultSettings;
 
 // Cache the settings of all open documents
-const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
+const documentSettings: Map<string, Thenable<CSSVariablesSettings>> = new Map();
 
-connection.onDidChangeConfiguration((change) => {
+connection.onDidChangeConfiguration(async (change) => {
   if (hasConfigurationCapability) {
     // Reset all cached document settings
     documentSettings.clear();
+
+    const validFolders = await connection.workspace
+      .getWorkspaceFolders()
+      .then((folders) =>
+        folders
+          ?.map((folder) => uriToPath(folder.uri) || '')
+          .filter((path) => !!path)
+      );
+
+    const settings = await getDocumentSettings();
+
+    // parse and sync variables
+    parseAndSyncVariables(
+      validFolders || [],
+      settings
+    );
   } else {
-    globalSettings = <ExampleSettings>(
-      (change.settings.languageServerExample || defaultSettings)
+    globalSettings = <CSSVariablesSettings>(
+      (change.settings?.cssVariables || defaultSettings)
     );
   }
 });
 
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+function getDocumentSettings(): Thenable<CSSVariablesSettings> {
+  const resource = 'all';
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
   let result = documentSettings.get(resource);
   if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: 'cssVariablesLanguageServer',
-    });
+    result = connection.workspace.getConfiguration('cssVariables');
     documentSettings.set(resource, result);
   }
   return result;
@@ -288,6 +310,7 @@ function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
 
 // Only keep settings for open documents
 documents.onDidClose((e) => {
+  connection.console.log('Closed: ' + e.document.uri);
   documentSettings.delete(e.document.uri);
 });
 
@@ -296,11 +319,19 @@ connection.onDidChangeWatchedFiles((_change) => {
   _change.changes.forEach((change) => {
     const filePath = uriToPath(change.uri);
     if (filePath) {
-      const content = fs.readFileSync(filePath, 'utf8');
-      parseCSSVariablesFromText({
-        content,
-        filePath,
-      });
+      // remove variables from cache
+      if (change.type === FileChangeType.Deleted && cachedVariables[filePath]) {
+        cachedVariables[filePath]?.forEach((_, key) => {
+          cachedVariables['all']?.delete(key);
+        });
+        cachedVariables[filePath].clear();
+      } else {
+        const content = fs.readFileSync(filePath, 'utf8');
+        parseCSSVariablesFromText({
+          content,
+          filePath,
+        });
+      }
     }
   });
 });
@@ -320,7 +351,7 @@ connection.onCompletion(
     const isFunctionCall = isInFunctionExpression(currentWord);
 
     const items: CompletionItem[] = [];
-    cachedVariables['all'].forEach((variable) => {
+    cachedVariables['all']?.forEach((variable) => {
       const varSymbol = variable.symbol;
       const insertText = isFunctionCall
         ? varSymbol.name
@@ -330,7 +361,6 @@ connection.onCompletion(
         detail: varSymbol.value,
         documentation: varSymbol.value,
         insertText,
-        // textEdit: TextEdit.replace(editRange, insertText),
         kind: isColor(varSymbol.value)
           ? CompletionItemKind.Color
           : CompletionItemKind.Variable,
@@ -374,7 +404,7 @@ connection.onDocumentColor((params): ColorInformation[] => {
   //     };
   // }
 
-  console.log("on document color");
+  connection.console.log('on document color');
 
   return colors;
 });
@@ -389,13 +419,12 @@ connection.onDefinition((params) => {
   const offset = doc.offsetAt(params.position);
   const currentWord = getCurrentWord(doc, offset);
 
-  if (!currentWord)
-    return null;
+  if (!currentWord) return null;
 
   const nornalizedWord = currentWord.slice(1);
 
   const definition = null;
-  const cssVariable = cachedVariables['all'].get(nornalizedWord);
+  const cssVariable = cachedVariables['all']?.get(nornalizedWord);
 
   if (cssVariable) {
     return cssVariable.definition;

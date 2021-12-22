@@ -36,19 +36,65 @@
       "title": "CSS Variables",
       "properties": {
         "cssVariables.lookupFiles": {
-          "type": [
-            "array"
+          "type": "array",
+          "markdownDescription": "Configure glob patterns for including files and folders. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options).",
+          "default": [
+            "**/*.css",
+            "**/*.scss",
+            "**/*.sass",
+            "**/*.less"
           ],
-          "default": [],
-          "description": "Specifies the variable definition files to use."
+          "scope": 3,
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "array",
+                "properties": {
+                  "when": {
+                    "type": "string",
+                    "pattern": "\\w*\\$\\(basename\\)\\w*",
+                    "default": "$(basename).ext",
+                    "description": "Additional check on the siblings of a matching file. Use $(basename) as variable for the matching file name."
+                  }
+                }
+              }
+            ]
+          }
         },
-        "cssVariablesLanguageServer.maxNumberOfProblems": {
-          "scope": "resource",
-          "type": "number",
-          "default": 100,
-          "description": "Controls the maximum number of problems produced by the server."
+        "cssVariables.blacklistFolders": {
+          "type": "array",
+          "markdownDescription": "Configure glob patterns for excluding files and folders. The extension will not scan variables in these files and folders. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options).",
+          "default": [
+            "**/.git",
+            "**/.svn",
+            "**/.hg",
+            "**/CVS",
+            "**/.DS_Store",
+            "**/.git",
+            "**/node_modules",
+            "**/bower_components",
+            "**/tmp",
+            "**/dist",
+            "**/tests"
+          ],
+          "scope": 3,
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "array",
+                "properties": {
+                  "when": {
+                    "type": "string",
+                    "pattern": "\\w*\\$\\(basename\\)\\w*",
+                    "default": "$(basename).ext",
+                    "description": "Additional check on the siblings of a matching file. Use $(basename) as variable for the matching file name."
+                  }
+                }
+              }
+            ]
+          }
         },
-        "cssVariablesLanguageServer.trace.server": {
+        "cssVariables.trace.server": {
           "scope": "window",
           "type": "string",
           "enum": [
