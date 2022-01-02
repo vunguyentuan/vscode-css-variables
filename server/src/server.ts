@@ -12,11 +12,15 @@ import {
   Range,
   ColorInformation,
   FileChangeType,
+  Color,
 } from 'vscode-languageserver/node';
 
 import * as fs from 'fs';
 import * as path from 'path';
 import fastGlob from 'fast-glob';
+import lineColumn from 'line-column';
+
+import * as culori from 'culori';
 
 import {
   getCSSLanguageService,
@@ -25,7 +29,7 @@ import {
   Location,
 } from 'vscode-css-languageservice';
 
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 
 import { Symbols } from 'vscode-css-languageservice/lib/umd/parser/cssSymbolScope.js';
 import isColor from './utils/isColor';
@@ -51,7 +55,7 @@ type CSSSymbol = {
 type CSSVariable = {
   symbol: CSSSymbol
   definition: Location
-  color?: ColorInformation
+  color?: Color
 }
 
 const cachedVariables: Record<string, Map<string, CSSVariable>> = {};
@@ -93,6 +97,13 @@ function isInFunctionExpression(word: string): boolean {
   }
 
   return '(' === word.charAt(0);
+}
+
+const toRgb = culori.converter('rgb');
+
+export function culoriColorToVscodeColor(color: culori.Color): Color {
+  const rgb = toRgb(color);
+  return { red: rgb.r, green: rgb.g, blue: rgb.b, alpha: rgb.alpha ?? 1 };
 }
 
 const parseCSSVariablesFromText = ({
@@ -145,6 +156,13 @@ const parseCSSVariablesFromText = ({
             ),
           },
         };
+
+        if (isColor(symbol.value)) {
+          const culoriColor = culori.parse(symbol.value);
+          if (culoriColor) {
+            variable.color = culoriColorToVscodeColor(culoriColor);
+          }
+        }
 
         // add to cache
         cachedVariables['all']?.set(symbol.name, variable);
@@ -285,10 +303,7 @@ connection.onDidChangeConfiguration(async (change) => {
     const settings = await getDocumentSettings();
 
     // parse and sync variables
-    parseAndSyncVariables(
-      validFolders || [],
-      settings
-    );
+    parseAndSyncVariables(validFolders || [], settings);
   } else {
     globalSettings = <CSSVariablesSettings>(
       (change.settings?.cssVariables || defaultSettings)
@@ -385,6 +400,26 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   return item;
 });
 
+export function findAll(re: RegExp, str: string): RegExpMatchArray[] {
+  let match: RegExpMatchArray;
+  const matches: RegExpMatchArray[] = [];
+  while ((match = re.exec(str)) !== null) {
+    matches.push({ ...match });
+  }
+  return matches;
+}
+
+export function indexToPosition(str: string, index: number): Position {
+  const data = lineColumn(str + '\n', index);
+
+  if (!data) {
+    console.log(str, index);
+    return { line: 0, character: 0 };
+  }
+  const { line, col } = data;
+  return { line: line - 1, character: col - 1 };
+}
+
 connection.onDocumentColor((params): ColorInformation[] => {
   const document = documents.get(params.textDocument.uri);
   if (!document) {
@@ -393,23 +428,57 @@ connection.onDocumentColor((params): ColorInformation[] => {
 
   const colors: ColorInformation[] = [];
 
-  // cachedVariables['all'].forEach(variable => {
-  //     const color = Color.parse(variable.value);
-  //     const range = document.getWordRangeAtPosition(
-  //         document.positionAt(variable.value),
-  //         /\b[A-Z]{2,}\b/g
-  //     );
-  //     return {
-  //         color,
-  //         range,
-  //     };
-  // }
+  const text = document.getText();
+  const matches = findAll(/var\((?<varName>\S+)\)/g, text);
 
-  connection.console.log('on document color');
+  const globalStart: Position = { line: 0, character: 0 };
+
+  
+  matches.map((match) => {
+    const start = indexToPosition(text, match.index);
+    const end = indexToPosition(
+      text,
+      match.index + match[0].length
+    );
+
+    const cssVariable = cachedVariables['all']?.get(match.groups.varName);
+
+    if (cssVariable?.color) {
+      const range = {
+        start: {
+          line: globalStart.line + start.line,
+          character:
+            (end.line === 0 ? globalStart.character : 0) + start.character,
+        },
+        end: {
+          line: globalStart.line + end.line,
+          character:
+            (end.line === 0 ? globalStart.character : 0) + end.character,
+        },
+      };
+
+      colors.push({
+        color: cssVariable.color,
+        range,
+      });
+    }
+  });
 
   return colors;
 });
 
+connection.onColorPresentation((params) => {
+  const document = documents.get(params.textDocument.uri);
+  
+  const className = document.getText(params.range);
+
+  connection.console.log('on color presentation ' + className);
+  if (!className) {
+    return [];
+  }
+
+  return [];
+});
 connection.onDefinition((params) => {
   const doc = documents.get(params.textDocument.uri);
 

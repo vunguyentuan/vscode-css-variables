@@ -5,9 +5,9 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"sourceMap": true,
-		"strict": true,
 		"outDir": "out",
 		"rootDir": "src",
+		"allowJs": true,
 		"esModuleInterop": true
 	},
 	"include": ["src"],
