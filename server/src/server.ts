@@ -429,13 +429,13 @@ connection.onDocumentColor((params): ColorInformation[] => {
   const colors: ColorInformation[] = [];
 
   const text = document.getText();
-  const matches = findAll(/var\((?<varName>\S+)\)/g, text);
+  const matches = findAll(/var\((?<varName>--[a-z-0-9]+)/g, text);
 
   const globalStart: Position = { line: 0, character: 0 };
 
   
   matches.map((match) => {
-    const start = indexToPosition(text, match.index);
+    const start = indexToPosition(text, match.index + 4);
     const end = indexToPosition(
       text,
       match.index + match[0].length
