@@ -1,4 +1,4 @@
-<p align="center"><img src="icon/css.png" height="50px" alt="Logo Laravel Octane"></p>
+<p align="center"><img src="icon/css.png" height="50px" alt="Logo CSS"></p>
 
 <h1 align="center">CSS Variables Autocomplete</h1>
 <p align="center">
@@ -14,6 +14,6 @@
 - Support CSS/SCSS/LESS/POSTCSS syntax.
 - Provide autocomplete feature for css variables.
 - Go to definition
-- Color preview
+- Color preview (inline & list)
 
-![Demo](https://github.com/vunguyentuan/vscode-css-variables/raw/master/demo.gif)
+![Demo](https://github.com/vunguyentuan/vscode-css-variables/raw/master/demo.v2.3.0.gif)
