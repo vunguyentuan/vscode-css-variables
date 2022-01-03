@@ -8,6 +8,18 @@
     "vscode": "^1.47.0",
     "node": "^14.18.2"
   },
+  "keywords": [
+    "cssvariable",
+    "css-variable",
+    "css-var",
+    "variable",
+    "less",
+    "sass",
+    "css",
+    "intellisense",
+    "autocomplete",
+    "vscode"
+  ],
   "categories": [
     "Other"
   ],
