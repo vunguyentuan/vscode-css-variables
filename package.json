@@ -19,7 +19,7 @@
     "type": "git",
     "url": "https://github.com/vunguyentuan/vscode-css-variables.git"
   },
-  "main": "./client/out/extension",
+  "main": "./client/out/extension.js",
   "contributes": {
     "configuration": {
       "title": "CSS Variables",
