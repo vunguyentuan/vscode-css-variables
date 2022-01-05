@@ -43,6 +43,7 @@ export function activate(context: ExtensionContext) {
       'onLanguage:vue-html',
       'onLanguage:vue-postcss',
       'onLanguage:scss',
+      'onLanguage:postcss',
       'onLanguage:less',
       'onLanguage:css',
       'onLanguage:html',
