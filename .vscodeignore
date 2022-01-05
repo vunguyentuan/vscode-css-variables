@@ -11,7 +11,8 @@ contributing.md
 **/testFixture/**
 **/*.tsbuildinfo
 
-demo.gif
+banner.jpg
+demo
 scripts/**
 client/node_modules/**
 !client/node_modules/vscode-jsonrpc/**
