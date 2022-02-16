@@ -149,7 +149,7 @@ const parseCSSVariablesFromText = ({
         const variable: CSSVariable = {
           symbol,
           definition: {
-            uri: filePath,
+            uri: `file://${filePath}`,
             range: Range.create(
               document.positionAt(symbol.node.offset),
               document.positionAt(symbol.node.end)
