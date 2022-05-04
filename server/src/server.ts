@@ -274,7 +274,6 @@ const defaultSettings: CSSVariablesSettings = {
     '**/.hg',
     '**/CVS',
     '**/.DS_Store',
-    '**/.git',
     '**/node_modules',
     '**/bower_components',
     '**/tmp',
