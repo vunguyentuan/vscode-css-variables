@@ -119,7 +119,7 @@ const parseCSSVariablesFromText = ({
     const service = languageService();
 
     const document = TextDocument.create(
-      `file://${filePath}`,
+      `file:///${filePath}`,
       'css',
       0,
       content
@@ -149,7 +149,7 @@ const parseCSSVariablesFromText = ({
         const variable: CSSVariable = {
           symbol,
           definition: {
-            uri: `file://${filePath}`,
+            uri: `file:///${filePath}`,
             range: Range.create(
               document.positionAt(symbol.node.offset),
               document.positionAt(symbol.node.end)
