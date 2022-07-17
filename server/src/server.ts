@@ -13,6 +13,7 @@ import {
   ColorInformation,
   FileChangeType,
   Color,
+  Location
 } from 'vscode-languageserver/node';
 
 import * as fs from 'fs';
@@ -26,7 +27,6 @@ import {
   getCSSLanguageService,
   getLESSLanguageService,
   getSCSSLanguageService,
-  Location,
 } from 'vscode-css-languageservice';
 
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
@@ -34,6 +34,7 @@ import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { Symbols } from 'vscode-css-languageservice/lib/umd/parser/cssSymbolScope.js';
 import isColor from './utils/isColor';
 import { uriToPath } from './utils/protocol';
+import { pathToFileURL } from 'url';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -106,6 +107,13 @@ export function culoriColorToVscodeColor(color: culori.Color): Color {
   return { red: rgb.r, green: rgb.g, blue: rgb.b, alpha: rgb.alpha ?? 1 };
 }
 
+const clearFileCache = (filePath: string) => {
+  cachedVariables[filePath]?.forEach((_, key) => {
+    cachedVariables['all']?.delete(key);
+  });
+  cachedVariables[filePath]?.clear();
+};
+
 const parseCSSVariablesFromText = ({
   content,
   filePath,
@@ -114,12 +122,17 @@ const parseCSSVariablesFromText = ({
   filePath: string
 }) => {
   try {
+    // reset cache for this file
+    clearFileCache(filePath);
+
     const fileExtension = path.extname(filePath);
     const languageService = getLanguageService(fileExtension);
     const service = languageService();
 
+    const fileURI = pathToFileURL(filePath).toString();
+
     const document = TextDocument.create(
-      `file:///${filePath}`,
+      fileURI,
       'css',
       0,
       content
@@ -128,14 +141,6 @@ const parseCSSVariablesFromText = ({
     const stylesheet = service.parseStylesheet(document);
 
     const symbolContext = new Symbols(stylesheet);
-
-    // const documentColors = service.findDocumentColors(document, stylesheet);
-
-    // const result: ColorInformation[] = []
-    // ;(stylesheet as any).accept((node: any) => {
-    //   console.log('node', node);
-    //   return true;
-    // });
 
     symbolContext.global.symbols.forEach((symbol: CSSSymbol) => {
       if (symbol.name.startsWith('--')) {
@@ -149,7 +154,7 @@ const parseCSSVariablesFromText = ({
         const variable: CSSVariable = {
           symbol,
           definition: {
-            uri: `file:///${filePath}`,
+            uri: fileURI,
             range: Range.create(
               document.positionAt(symbol.node.offset),
               document.positionAt(symbol.node.end)
@@ -169,6 +174,8 @@ const parseCSSVariablesFromText = ({
         cachedVariables[filePath].set(symbol.name, variable);
       }
     });
+
+    console.log(cachedVariables);
   } catch (error) {
     console.error(error);
   }
@@ -336,10 +343,7 @@ connection.onDidChangeWatchedFiles((_change) => {
     if (filePath) {
       // remove variables from cache
       if (change.type === FileChangeType.Deleted && cachedVariables[filePath]) {
-        cachedVariables[filePath]?.forEach((_, key) => {
-          cachedVariables['all']?.delete(key);
-        });
-        cachedVariables[filePath].clear();
+        clearFileCache(filePath);
       } else {
         const content = fs.readFileSync(filePath, 'utf8');
         parseCSSVariablesFromText({
@@ -355,7 +359,6 @@ connection.onDidChangeWatchedFiles((_change) => {
 connection.onCompletion(
   (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
     const doc = documents.get(_textDocumentPosition.textDocument.uri);
-
     if (!doc) {
       return [];
     }
@@ -388,6 +391,8 @@ connection.onCompletion(
 
       items.push(completion);
     });
+
+    console.log("this is complete", items);
 
     return items;
   }
