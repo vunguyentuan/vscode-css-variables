@@ -39,6 +39,7 @@ export function activate(context: ExtensionContext) {
   const clientOptions: LanguageClientOptions = {
     // Register the server for plain text documents
     documentSelector: [
+      'onLanguage:astro',
       'onLanguage:svelte',
       'onLanguage:vue',
       'onLanguage:vue-html',
