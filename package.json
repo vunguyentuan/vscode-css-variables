@@ -115,7 +115,8 @@
     "watch": "tsc -b -w",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-    "test": "sh ./scripts/e2e.sh"
+    "test": "sh ./scripts/e2e.sh",
+    "deploy": "vsce publish"
   },
   "devDependencies": {
     "@types/mocha": "^8.2.2",
@@ -124,6 +125,7 @@
     "@typescript-eslint/parser": "^4.23.0",
     "eslint": "^7.26.0",
     "mocha": "^8.3.2",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "vsce": "^2.9.3"
   }
 }
