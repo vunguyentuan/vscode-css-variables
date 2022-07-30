@@ -13,7 +13,8 @@ import {
   ColorInformation,
   FileChangeType,
   Color,
-  Location
+  Location,
+  Hover,
 } from 'vscode-languageserver/node';
 
 import * as fs from 'fs';
@@ -59,7 +60,7 @@ type CSSVariable = {
   color?: Color
 }
 
-const cachedVariables: Record<string, Map<string, CSSVariable>> = {};
+let cachedVariables: Record<string, Map<string, CSSVariable>> = {};
 
 export const getLanguageService = (fileExtension: string) => {
   switch (fileExtension) {
@@ -114,6 +115,11 @@ const clearFileCache = (filePath: string) => {
   cachedVariables[filePath]?.clear();
 };
 
+const clearAllCache = () => {
+  cachedVariables['all']?.clear();
+  cachedVariables = {};
+};
+
 const parseCSSVariablesFromText = ({
   content,
   filePath,
@@ -131,12 +137,7 @@ const parseCSSVariablesFromText = ({
 
     const fileURI = pathToFileURL(filePath).toString();
 
-    const document = TextDocument.create(
-      fileURI,
-      'css',
-      0,
-      content
-    );
+    const document = TextDocument.create(fileURI, 'css', 0, content);
 
     const stylesheet = service.parseStylesheet(document);
 
@@ -174,8 +175,6 @@ const parseCSSVariablesFromText = ({
         cachedVariables[filePath].set(symbol.name, variable);
       }
     });
-
-    console.log(cachedVariables);
   } catch (error) {
     console.error(error);
   }
@@ -205,14 +204,6 @@ const parseAndSyncVariables = (
 
 connection.onInitialize(async (params: InitializeParams) => {
   const capabilities = params.capabilities;
-  const settings = await getDocumentSettings();
-
-  const validFolders = params.workspaceFolders
-    ?.map((folder) => uriToPath(folder.uri) || '')
-    .filter((path) => !!path);
-
-  // parse and sync variables
-  parseAndSyncVariables(validFolders || [], settings);
 
   // Does the client support the `workspace/configuration` request?
   // If not, we fall back using global settings.
@@ -236,9 +227,11 @@ connection.onInitialize(async (params: InitializeParams) => {
         resolveProvider: true,
       },
       definitionProvider: true,
+      hoverProvider: true,
       colorProvider: true,
     },
   };
+
   if (hasWorkspaceFolderCapability) {
     result.capabilities.workspace = {
       workspaceFolders: {
@@ -249,7 +242,7 @@ connection.onInitialize(async (params: InitializeParams) => {
   return result;
 });
 
-connection.onInitialized(() => {
+connection.onInitialized(async () => {
   if (hasConfigurationCapability) {
     // Register for all configuration changes.
     connection.client.register(
@@ -262,6 +255,16 @@ connection.onInitialized(() => {
       connection.console.log('Workspace folder change event received.');
     });
   }
+
+  const workspaceFolders = await connection.workspace.getWorkspaceFolders();
+  const validFolders = workspaceFolders
+    ?.map((folder) => uriToPath(folder.uri) || '')
+    .filter((path) => !!path);
+
+  const settings = await getDocumentSettings();
+
+  // parse and sync variables
+  parseAndSyncVariables(validFolders || [], settings);
 });
 
 // The example settings
@@ -297,6 +300,7 @@ connection.onDidChangeConfiguration(async (change) => {
   if (hasConfigurationCapability) {
     // Reset all cached document settings
     documentSettings.clear();
+    clearAllCache();
 
     const validFolders = await connection.workspace
       .getWorkspaceFolders()
@@ -392,8 +396,6 @@ connection.onCompletion(
       items.push(completion);
     });
 
-    console.log("this is complete", items);
-
     return items;
   }
 );
@@ -417,7 +419,6 @@ export function indexToPosition(str: string, index: number): Position {
   const data = lineColumn(str + '\n', index);
 
   if (!data) {
-    console.log(str, index);
     return { line: 0, character: 0 };
   }
   const { line, col } = data;
@@ -437,13 +438,9 @@ connection.onDocumentColor((params): ColorInformation[] => {
 
   const globalStart: Position = { line: 0, character: 0 };
 
-  
   matches.map((match) => {
     const start = indexToPosition(text, match.index + 4);
-    const end = indexToPosition(
-      text,
-      match.index + match[0].length
-    );
+    const end = indexToPosition(text, match.index + match[0].length);
 
     const cssVariable = cachedVariables['all']?.get(match.groups.varName);
 
@@ -471,12 +468,36 @@ connection.onDocumentColor((params): ColorInformation[] => {
   return colors;
 });
 
+connection.onHover((params) => {
+  const doc = documents.get(params.textDocument.uri);
+
+  if (!doc) {
+    return null;
+  }
+
+  const offset = doc.offsetAt(params.position);
+  const currentWord = getCurrentWord(doc, offset);
+
+  if (!currentWord) return null;
+
+  const nornalizedWord = currentWord.slice(1);
+
+  const cssVariable = cachedVariables['all']?.get(nornalizedWord);
+
+  if (cssVariable) {
+    return {
+      contents: cssVariable.symbol.value,
+      range: cssVariable.definition.range,
+    } as Hover;
+  }
+
+  return null;
+});
+
 connection.onColorPresentation((params) => {
   const document = documents.get(params.textDocument.uri);
-  
-  const className = document.getText(params.range);
 
-  connection.console.log('on color presentation ' + className);
+  const className = document.getText(params.range);
   if (!className) {
     return [];
   }
@@ -496,15 +517,13 @@ connection.onDefinition((params) => {
   if (!currentWord) return null;
 
   const nornalizedWord = currentWord.slice(1);
-
-  const definition = null;
   const cssVariable = cachedVariables['all']?.get(nornalizedWord);
 
   if (cssVariable) {
     return cssVariable.definition;
   }
 
-  return definition;
+  return null;
 });
 
 // Make the text document manager listen on the connection
