@@ -37,36 +37,7 @@ export function activate(context: ExtensionContext) {
 
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
-    // Register the server for plain text documents
-    documentSelector: [
-      'onLanguage:astro',
-      'onLanguage:svelte',
-      'onLanguage:vue',
-      'onLanguage:vue-html',
-      'onLanguage:vue-postcss',
-      'onLanguage:scss',
-      'onLanguage:postcss',
-      'onLanguage:less',
-      'onLanguage:css',
-      'onLanguage:html',
-      'onLanguage:javascript',
-      'onLanguage:javascriptreact',
-      'onLanguage:typescript',
-      'onLanguage:typescriptreact',
-      'onLanguage:source.css.styled',
-    ].map((event) => ({
-      scheme: 'file',
-      language: event.split(':')[1],
-    })),
-    synchronize: {
-      // Notify the server about file changes to '.clientrc files contained in the workspace
-      fileEvents: [
-        workspace.createFileSystemWatcher('**/*.css'),
-        workspace.createFileSystemWatcher('**/*.scss'),
-        workspace.createFileSystemWatcher('**/*.sass'),
-        workspace.createFileSystemWatcher('**/*.less'),
-      ],
-    },
+    documentSelector: [{ scheme: 'file' }, { scheme: 'untitled' }],
   };
 
   // Create the language client and start the client.
