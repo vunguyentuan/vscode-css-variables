@@ -38,6 +38,14 @@ export function activate(context: ExtensionContext) {
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: 'file' }, { scheme: 'untitled' }],
+    synchronize: {
+      fileEvents: [
+        workspace.createFileSystemWatcher('**/*.css'),
+        workspace.createFileSystemWatcher('**/*.scss'),
+        workspace.createFileSystemWatcher('**/*.sass'),
+        workspace.createFileSystemWatcher('**/*.less'),
+      ]
+    }
   };
 
   // Create the language client and start the client.
