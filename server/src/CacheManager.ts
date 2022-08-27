@@ -11,9 +11,9 @@
  * }
  */
 
-export default class Cache<T> {
-	private cachedVariables: Record<string, Map<string, T>> = {};
-	private allVariables: Map<string, T>
+export default class CacheManager<T> {
+	private cachedVariables: Map<string, Map<string, T>> = new Map();
+	private allVariables: Map<string, T> = new Map();
 	
 	public get(key: string, filePath?: string) {
 		if (filePath) {
@@ -31,9 +31,6 @@ export default class Cache<T> {
 		if (!this.cachedVariables[filePath]) {
 			this.cachedVariables[filePath] = new Map();
 		}
-		if (!this.allVariables) {
-			this.allVariables = new Map();
-		}
 
 		this.allVariables?.set(key, value);
     this.cachedVariables[filePath].set(key, value);
@@ -48,6 +45,6 @@ export default class Cache<T> {
 
 	public clearAllCache() {
 		this.allVariables?.clear();
-		this.cachedVariables = {};
+		this.cachedVariables.clear();
 	}
 }

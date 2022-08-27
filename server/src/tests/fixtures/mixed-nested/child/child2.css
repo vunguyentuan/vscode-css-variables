@@ -1,0 +1,40 @@
+:root {
+	--child-h3: 18px;
+	--child-text-base: 16px;
+	/* --text-base: 14px; */
+	--child-carousel-bg: var(--main-bg-color);
+}
+
+.one {
+  color: white;
+  background-color: var(--main-bg-color);
+  margin: 10px;
+  width: 50px;
+  height: 50px;
+  display: inline-block;
+}
+
+.two {
+  color: white;
+  background-color: black;
+  margin: 10px;
+  width: 150px;
+  height: 70px;
+  display: inline-block;
+}
+.three {
+  color: white;
+  background-color: var(--main-bg-color);
+  margin: 10px;
+  width: 75px;
+}
+.four {
+  color: white;
+  background-color: var(--main-bg-color);
+  margin: 10px;
+  width: 100px;
+}
+
+.five {
+  background-color: var(--main-bg-color);
+}

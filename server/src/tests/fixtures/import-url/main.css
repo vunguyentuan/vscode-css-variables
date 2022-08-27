@@ -1,0 +1,46 @@
+@import 'https://cdn.jsdelivr.net/gh/KunalTanwar/tailwind-colors/dist/css/colors.min.css';
+
+@layer base {
+  :root {
+    --main-bg-color: brown;
+    --h1: 26px;
+    --h2: 22px;
+    --h3: 18px;
+    --text-base: 16px;
+    --carousel-bg: var(--main-bg-color);
+  }
+}
+
+.one {
+  color: white;
+  background-color: var(--main-bg-color);
+  margin: 10px;
+  width: 50px;
+  height: 50px;
+  display: inline-block;
+}
+
+.two {
+  color: white;
+  background-color: black;
+  margin: 10px;
+  width: 150px;
+  height: 70px;
+  display: inline-block;
+}
+.three {
+  color: white;
+  background-color: var(--main-bg-color);
+  margin: 10px;
+  width: 75px;
+}
+.four {
+  color: white;
+  background-color: var(--main-bg-color);
+  margin: 10px;
+  width: 100px;
+}
+
+.five {
+  background-color: var(--main-bg-color);
+}
