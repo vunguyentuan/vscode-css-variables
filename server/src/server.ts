@@ -20,7 +20,6 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import fastGlob from 'fast-glob';
-import lineColumn from 'line-column';
 
 import * as culori from 'culori';
 
@@ -36,6 +35,12 @@ import { Symbols } from 'vscode-css-languageservice/lib/umd/parser/cssSymbolScop
 import isColor from './utils/isColor';
 import { uriToPath } from './utils/protocol';
 import { pathToFileURL } from 'url';
+import { findAll } from './utils/findAll';
+import { indexToPosition } from './utils/indexToPosition';
+import { culoriColorToVscodeColor } from './utils/culoriColorToVscodeColor';
+import { getCurrentWord } from './utils/getCurrentWord';
+import { isInFunctionExpression } from './utils/isInFunctionExpression';
+import Cache from './cache';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -60,8 +65,6 @@ type CSSVariable = {
   color?: Color
 }
 
-let cachedVariables: Record<string, Map<string, CSSVariable>> = {};
-
 export const getLanguageService = (fileExtension: string) => {
   switch (fileExtension) {
     case '.less':
@@ -74,51 +77,7 @@ export const getLanguageService = (fileExtension: string) => {
   }
 };
 
-function getCurrentWord(document: TextDocument, offset: number): string {
-  let left = offset - 1;
-  let right = offset + 1;
-  const text = document.getText();
-
-  while (left >= 0 && ' \t\n\r":{[()]},*>+'.indexOf(text.charAt(left)) === -1) {
-    left--;
-  }
-
-  while (
-    right <= text.length &&
-    ' \t\n\r":{[()]},*>+'.indexOf(text.charAt(right)) === -1
-  ) {
-    right++;
-  }
-
-  return text.substring(left, right);
-}
-
-function isInFunctionExpression(word: string): boolean {
-  if (word.length < 1) {
-    return false;
-  }
-
-  return '(' === word.charAt(0);
-}
-
-const toRgb = culori.converter('rgb');
-
-export function culoriColorToVscodeColor(color: culori.Color): Color {
-  const rgb = toRgb(color);
-  return { red: rgb.r, green: rgb.g, blue: rgb.b, alpha: rgb.alpha ?? 1 };
-}
-
-const clearFileCache = (filePath: string) => {
-  cachedVariables[filePath]?.forEach((_, key) => {
-    cachedVariables['all']?.delete(key);
-  });
-  cachedVariables[filePath]?.clear();
-};
-
-const clearAllCache = () => {
-  cachedVariables['all']?.clear();
-  cachedVariables = {};
-};
+const cacheManager = new Cache<CSSVariable>();
 
 const parseCSSVariablesFromText = ({
   content,
@@ -129,7 +88,7 @@ const parseCSSVariablesFromText = ({
 }) => {
   try {
     // reset cache for this file
-    clearFileCache(filePath);
+    cacheManager.clearFileCache(filePath);
 
     const fileExtension = path.extname(filePath);
     const languageService = getLanguageService(fileExtension);
@@ -145,13 +104,6 @@ const parseCSSVariablesFromText = ({
 
     symbolContext.global.symbols.forEach((symbol: CSSSymbol) => {
       if (symbol.name.startsWith('--')) {
-        if (!cachedVariables[filePath]) {
-          cachedVariables[filePath] = new Map();
-        }
-        if (!cachedVariables['all']) {
-          cachedVariables['all'] = new Map();
-        }
-
         const variable: CSSVariable = {
           symbol,
           definition: {
@@ -171,8 +123,7 @@ const parseCSSVariablesFromText = ({
         }
 
         // add to cache
-        cachedVariables['all']?.set(symbol.name, variable);
-        cachedVariables[filePath].set(symbol.name, variable);
+        cacheManager.set(filePath, symbol.name, variable);
       }
     });
   } catch (error) {
@@ -300,7 +251,7 @@ connection.onDidChangeConfiguration(async (change) => {
   if (hasConfigurationCapability) {
     // Reset all cached document settings
     documentSettings.clear();
-    clearAllCache();
+    cacheManager.clearAllCache();
 
     const validFolders = await connection.workspace
       .getWorkspaceFolders()
@@ -346,8 +297,8 @@ connection.onDidChangeWatchedFiles((_change) => {
     const filePath = uriToPath(change.uri);
     if (filePath) {
       // remove variables from cache
-      if (change.type === FileChangeType.Deleted && cachedVariables[filePath]) {
-        clearFileCache(filePath);
+      if (change.type === FileChangeType.Deleted) {
+        cacheManager.clearFileCache(filePath);
       } else {
         const content = fs.readFileSync(filePath, 'utf8');
         parseCSSVariablesFromText({
@@ -373,7 +324,7 @@ connection.onCompletion(
     const isFunctionCall = isInFunctionExpression(currentWord);
 
     const items: CompletionItem[] = [];
-    cachedVariables['all']?.forEach((variable) => {
+    cacheManager.getAll().forEach((variable) => {
       const varSymbol = variable.symbol;
       const insertText = isFunctionCall
         ? varSymbol.name
@@ -382,6 +333,7 @@ connection.onCompletion(
         label: varSymbol.name,
         detail: varSymbol.value,
         documentation: varSymbol.value,
+        commitCharacters: [' ', ';', '{', '}'],
         insertText,
         kind: isColor(varSymbol.value)
           ? CompletionItemKind.Color
@@ -406,25 +358,6 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   return item;
 });
 
-export function findAll(re: RegExp, str: string): RegExpMatchArray[] {
-  let match: RegExpMatchArray;
-  const matches: RegExpMatchArray[] = [];
-  while ((match = re.exec(str)) !== null) {
-    matches.push({ ...match });
-  }
-  return matches;
-}
-
-export function indexToPosition(str: string, index: number): Position {
-  const data = lineColumn(str + '\n', index);
-
-  if (!data) {
-    return { line: 0, character: 0 };
-  }
-  const { line, col } = data;
-  return { line: line - 1, character: col - 1 };
-}
-
 connection.onDocumentColor((params): ColorInformation[] => {
   const document = documents.get(params.textDocument.uri);
   if (!document) {
@@ -442,7 +375,7 @@ connection.onDocumentColor((params): ColorInformation[] => {
     const start = indexToPosition(text, match.index + 4);
     const end = indexToPosition(text, match.index + match[0].length);
 
-    const cssVariable = cachedVariables['all']?.get(match.groups.varName);
+    const cssVariable = cacheManager.getAll().get(match.groups.varName);
 
     if (cssVariable?.color) {
       const range = {
@@ -482,7 +415,7 @@ connection.onHover((params) => {
 
   const nornalizedWord = currentWord.slice(1);
 
-  const cssVariable = cachedVariables['all']?.get(nornalizedWord);
+  const cssVariable = cacheManager.getAll().get(nornalizedWord);
 
   if (cssVariable) {
     return {
@@ -504,6 +437,7 @@ connection.onColorPresentation((params) => {
 
   return [];
 });
+
 connection.onDefinition((params) => {
   const doc = documents.get(params.textDocument.uri);
 
@@ -517,7 +451,7 @@ connection.onDefinition((params) => {
   if (!currentWord) return null;
 
   const nornalizedWord = currentWord.slice(1);
-  const cssVariable = cachedVariables['all']?.get(nornalizedWord);
+  const cssVariable = cacheManager.getAll().get(nornalizedWord);
 
   if (cssVariable) {
     return cssVariable.definition;
