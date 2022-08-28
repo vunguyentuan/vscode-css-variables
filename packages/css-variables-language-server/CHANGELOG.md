@@ -1,5 +1,11 @@
 # css-variables-language-server
 
+## 2.4.1
+
+### Patch Changes
+
+- 0bdec05: Fix go to definition
+
 ## 2.4.0
 
 ### Minor Changes
