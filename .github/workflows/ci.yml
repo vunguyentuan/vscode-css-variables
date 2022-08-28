@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 16.16.0
       - name: Install dependencies
         run: npm install
       - name: Run headless test
@@ -34,7 +34,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 16.16.0
       - name: Install dependencies
         run: npm install
       - name: Release
