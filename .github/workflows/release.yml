@@ -34,15 +34,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # - name: Publish to VSCode Marketplace
-      #   if: steps.changesets.outputs.published == 'true'
-      #   working-directory: ./packages/vscode-css-variables
-      #   run: |
-      #     npm i
-      #     npx vsce publish -p ${{ secrets.VSCE_TOKEN }}
-      # - name: Publish to OpenVSX
-      #   if: steps.changesets.outputs.published == 'true'
-      #   working-directory: ./packages/vscode-css-variables
-      #   run: |
-      #     npm i
-      #     npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
+      - name: Publish to VSCode Marketplace
+        if: steps.changesets.outputs.published == 'true'
+        working-directory: ./packages/vscode-css-variables
+        run: |
+          npm i
+          npx vsce publish -p ${{ secrets.VSCE_PAT }}
+      - name: Publish to OpenVSX
+        if: steps.changesets.outputs.published == 'true'
+        working-directory: ./packages/vscode-css-variables
+        run: |
+          npm i
+          npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
