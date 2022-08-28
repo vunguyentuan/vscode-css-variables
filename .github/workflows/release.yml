@@ -1,0 +1,48 @@
+name: Changelog
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    name: Changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
+
+      - name: Set up Node.js 16.16.0
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.16.0
+          
+      - name: Install dependencies
+        run: npm install
+        env:
+          CI: true
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        # with:
+        #   publish: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # - name: Publish to VSCode Marketplace
+      #   if: steps.changesets.outputs.published == 'true'
+      #   working-directory: ./packages/vscode-css-variables
+      #   run: |
+      #     npm i
+      #     npx vsce publish -p ${{ secrets.VSCE_TOKEN }}
+      # - name: Publish to OpenVSX
+      #   if: steps.changesets.outputs.published == 'true'
+      #   working-directory: ./packages/vscode-css-variables
+      #   run: |
+      #     npm i
+      #     npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}

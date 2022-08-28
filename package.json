@@ -1,9 +1,7 @@
 {
-	"name": "css-variables-intellisense",
-	"version": "2.3.12",
-	"displayName": "CSS Variable Autocomplete",
-	"description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
-	"publisher": "vunguyentuan",
+	"name": "root",
+	"version": "0.0.0",
+	"private": true,
 	"workspaces": [
 		"packages/*"
 	],
@@ -16,6 +14,7 @@
 		"deploy": "turbo run deploy"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.24.3",
 		"turbo": "^1.4.3"
 	}
 }
