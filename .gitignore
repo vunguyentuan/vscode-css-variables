@@ -1,6 +1,8 @@
-out
 node_modules
-client/server
 .vscode-test
 *.vsix
 *.tsbuildinfo
+.turbo
+dist
+out
+.DS_Store

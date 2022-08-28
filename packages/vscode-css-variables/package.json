@@ -1,0 +1,143 @@
+{
+	"name": "vscode-css-variables",
+	"version": "2.3.13",
+	"displayName": "CSS Variable Autocomplete",
+	"description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
+	"publisher": "vunguyentuan",
+	"engines": {
+		"vscode": "^1.63.0"
+	},
+	"keywords": [
+		"cssvariable",
+		"css-variable",
+		"css-var",
+		"variable",
+		"less",
+		"sass",
+		"css",
+		"intellisense",
+		"autocomplete",
+		"vscode"
+	],
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"icon": "icon/css.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/vunguyentuan/vscode-css-variables.git"
+	},
+	"main": "./dist/index.js",
+	"contributes": {
+		"configuration": {
+			"title": "CSS Variables",
+			"properties": {
+				"cssVariables.lookupFiles": {
+					"type": "array",
+					"markdownDescription": "Configure glob patterns for including files and folders. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options).",
+					"default": [
+						"**/*.css",
+						"**/*.scss",
+						"**/*.sass",
+						"**/*.less"
+					],
+					"scope": 3,
+					"additionalProperties": {
+						"anyOf": [
+							{
+								"type": "array",
+								"properties": {
+									"when": {
+										"type": "string",
+										"pattern": "\\w*\\$\\(basename\\)\\w*",
+										"default": "$(basename).ext",
+										"description": "Additional check on the siblings of a matching file. Use $(basename) as variable for the matching file name."
+									}
+								}
+							}
+						]
+					}
+				},
+				"cssVariables.blacklistFolders": {
+					"type": "array",
+					"markdownDescription": "Configure glob patterns for excluding files and folders. The extension will not scan variables in these files and folders. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options).",
+					"default": [
+						"**/.git",
+						"**/.svn",
+						"**/.hg",
+						"**/CVS",
+						"**/.DS_Store",
+						"**/.git",
+						"**/node_modules",
+						"**/bower_components",
+						"**/tmp",
+						"**/dist",
+						"**/tests"
+					],
+					"scope": 3,
+					"additionalProperties": {
+						"anyOf": [
+							{
+								"type": "array",
+								"properties": {
+									"when": {
+										"type": "string",
+										"pattern": "\\w*\\$\\(basename\\)\\w*",
+										"default": "$(basename).ext",
+										"description": "Additional check on the siblings of a matching file. Use $(basename) as variable for the matching file name."
+									}
+								}
+							}
+						]
+					}
+				},
+				"cssVariables.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "off",
+					"description": "Traces the communication between VS Code and the language server."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run build",
+		"build": "tsup src/index.ts src/server.ts --format cjs --external vscode",
+		"dev": "tsup src/index.ts src/server.ts --watch --format cjs --external vscode",
+		"clean": "rm -rf dist && rm -rf out && rm -rf .vscode-test",
+		"lint": "eslint ./src --ext .ts,.tsx --fix",
+		"pretest": "tsc -p ./ && rm -f .vscode-test/user-",
+		"test": "node ./out/test/runTest.js",
+		"deploy": "vsce publish",
+		"package": "vsce package --pre-release"
+	},
+	"devDependencies": {
+		"@types/mocha": "^9.1.1",
+		"@types/node": "^18.7.13",
+		"@types/vscode": "^1.63.0",
+		"@vscode/test-electron": "^2.1.5",
+		"mocha": "^10.0.0",
+		"tsup": "^6.2.3",
+		"typescript": "^4.8.2",
+		"vsce": "^2.10.2",
+		"vscode-languageclient": "^8.0.2",
+		"eslint": "^8.23.0",
+		"eslint-config-airbnb-typescript": "^17.0.0",
+		"@typescript-eslint/eslint-plugin": "^5.35.1",
+		"@typescript-eslint/parser": "^5.35.1"
+	},
+	"__metadata": {
+		"id": "3f96fda8-094b-4817-97fb-a7eab7a8f5e0",
+		"publisherDisplayName": "Vu Nguyen",
+		"publisherId": "411219bd-68b8-4df2-9a3b-1ac214fcfd05",
+		"isPreReleaseVersion": false
+	}
+}

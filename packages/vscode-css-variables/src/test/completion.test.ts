@@ -8,9 +8,7 @@ import * as assert from 'assert';
 import {
   getDocUri,
   activate,
-  sleep,
   positionOf,
-  setTestContent,
 } from './helper';
 
 suite('Should do completion', () => {
@@ -23,7 +21,7 @@ suite('Should do completion', () => {
           label: '--chakra-ring-offset-width',
           kind: vscode.CompletionItemKind.Variable,
         },
-				{
+        {
           label: '--chakra-ring-color',
           kind: vscode.CompletionItemKind.Color,
         },
@@ -35,32 +33,30 @@ suite('Should do completion', () => {
 async function testCompletion(
   docUri: vscode.Uri,
   searchText: string,
-  expectedCompletionList: vscode.CompletionList
+  expectedCompletionList: vscode.CompletionList,
 ) {
   await activate(docUri);
 
   const position = positionOf(searchText);
   const toPosition = position.with(position.line, position.character);
 
-	const text = vscode.window.activeTextEditor.document.getText(new vscode.Range(position, toPosition));
   // Executing the command `vscode.executeCompletionItemProvider` to simulate triggering completion
-  const actualCompletionList =
-    await vscode.commands.executeCommand<vscode.CompletionList>(
-      'vscode.executeCompletionItemProvider',
-      docUri,
-      toPosition,
-    );
+  const actualCompletionList = await vscode.commands.executeCommand<vscode.CompletionList>(
+    'vscode.executeCompletionItemProvider',
+    docUri,
+    toPosition,
+  );
 
   expectedCompletionList.items.forEach((expectedItem) => {
-    const actualItem = actualCompletionList.items.find(actualItem => {
-			if (typeof actualItem.label === "string") {
-				return actualItem.label === expectedItem.label;
-			}
+    const actualItem = actualCompletionList.items.find((item) => {
+      if (typeof item.label === 'string') {
+        return item.label === expectedItem.label;
+      }
 
-			return false;
-		});
+      return false;
+    });
 
-		assert.ok(actualItem);
+    assert.ok(actualItem);
     assert.strictEqual(actualItem.label, expectedItem.label);
     assert.strictEqual(actualItem.kind, expectedItem.kind);
   });

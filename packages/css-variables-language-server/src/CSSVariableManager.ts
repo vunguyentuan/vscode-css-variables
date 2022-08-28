@@ -46,7 +46,7 @@ export const defaultSettings: CSSVariablesSettings = {
 };
 
 export default class CSSVariableManager {
-  private cacheManager = new CacheManager<CSSVariable>()
+  private cacheManager = new CacheManager<CSSVariable>();
 
   public parseCSSVariablesFromText = async ({
     content,
@@ -129,7 +129,7 @@ export default class CSSVariableManager {
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   public parseAndSyncVariables = async (
     workspaceFolders: string[],
@@ -153,7 +153,7 @@ export default class CSSVariableManager {
         );
       });
     }
-  }
+  };
 
   public getAll() {
     return this.cacheManager.getAll();

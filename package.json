@@ -1,131 +1,21 @@
 {
-  "name": "vscode-css-variables",
-  "version": "2.3.12",
-  "displayName": "CSS Variable Autocomplete",
-  "description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
-  "publisher": "vunguyentuan",
-  "engines": {
-    "vscode": "^1.47.0",
-    "node": "^14.18.2"
-  },
-  "keywords": [
-    "cssvariable",
-    "css-variable",
-    "css-var",
-    "variable",
-    "less",
-    "sass",
-    "css",
-    "intellisense",
-    "autocomplete",
-    "vscode"
-  ],
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onStartupFinished"
-  ],
-  "icon": "icon/css.png",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/vunguyentuan/vscode-css-variables.git"
-  },
-  "main": "./client/out/extension.js",
-  "contributes": {
-    "configuration": {
-      "title": "CSS Variables",
-      "properties": {
-        "cssVariables.lookupFiles": {
-          "type": "array",
-          "markdownDescription": "Configure glob patterns for including files and folders. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options).",
-          "default": [
-            "**/*.css",
-            "**/*.scss",
-            "**/*.sass",
-            "**/*.less"
-          ],
-          "scope": 3,
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "array",
-                "properties": {
-                  "when": {
-                    "type": "string",
-                    "pattern": "\\w*\\$\\(basename\\)\\w*",
-                    "default": "$(basename).ext",
-                    "description": "Additional check on the siblings of a matching file. Use $(basename) as variable for the matching file name."
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "cssVariables.blacklistFolders": {
-          "type": "array",
-          "markdownDescription": "Configure glob patterns for excluding files and folders. The extension will not scan variables in these files and folders. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options).",
-          "default": [
-            "**/.git",
-            "**/.svn",
-            "**/.hg",
-            "**/CVS",
-            "**/.DS_Store",
-            "**/.git",
-            "**/node_modules",
-            "**/bower_components",
-            "**/tmp",
-            "**/dist",
-            "**/tests"
-          ],
-          "scope": 3,
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "array",
-                "properties": {
-                  "when": {
-                    "type": "string",
-                    "pattern": "\\w*\\$\\(basename\\)\\w*",
-                    "default": "$(basename).ext",
-                    "description": "Additional check on the siblings of a matching file. Use $(basename) as variable for the matching file name."
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "cssVariables.trace.server": {
-          "scope": "window",
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "description": "Traces the communication between VS Code and the language server."
-        }
-      }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -b",
-    "watch": "tsc -b -w",
-    "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
-    "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-    "test": "sh ./scripts/e2e.sh",
-    "deploy": "vsce publish"
-  },
-  "devDependencies": {
-    "@types/mocha": "^8.2.2",
-    "@types/node": "^12.12.0",
-    "@typescript-eslint/eslint-plugin": "^4.23.0",
-    "@typescript-eslint/parser": "^4.23.0",
-    "eslint": "^7.26.0",
-    "mocha": "^8.3.2",
-    "typescript": "^4.4.3",
-    "vsce": "^2.9.3"
-  }
+	"name": "css-variables-intellisense",
+	"version": "2.3.12",
+	"displayName": "CSS Variable Autocomplete",
+	"description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
+	"publisher": "vunguyentuan",
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"build": "turbo run build",
+		"test": "turbo run test",
+		"lint": "turbo run lint",
+		"dev": "turbo run dev",
+		"package": "turbo run package",
+		"deploy": "turbo run deploy"
+	},
+	"devDependencies": {
+		"turbo": "^1.4.3"
+	}
 }

@@ -161,7 +161,7 @@ const CSS_COLOR_NAMES = [
 
 const PREFIX = '^(rgb|hsl)(a?)\\s*\\(';
 const VALUE = '\\s*([-+]?\\d+%?)\\s*';
-const ALPHA = '(?:,\\s*([-+]?(?:(?:\\d+(?:\.\\d+)?)|(?:\.\\d+))\\s*))?';
+const ALPHA = '(?:,\\s*([-+]?(?:(?:\\d+(?:.\\d+)?)|(?:.\\d+))\\s*))?';
 const SUFFIX = '\\)$';
 const RGB_HSL_PATTERN = new RegExp(PREFIX + VALUE + ',' + VALUE + ',' + VALUE + ALPHA + SUFFIX);
 
