@@ -1,7 +1,7 @@
 {
 	"name": "css-variables-language-server",
 	"description": "CSS Variables Language Server in node.",
-	"version": "1.0.0",
+	"version": "2.4.0",
 	"author": "Vu Nguyen",
 	"license": "MIT",
 	"repository": {
