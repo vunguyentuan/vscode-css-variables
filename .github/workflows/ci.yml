@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    paths-ignore:
+      - '.vscode/**'
+      - 'docs/**'
 
 jobs:
   test:
