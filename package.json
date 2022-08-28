@@ -11,7 +11,8 @@
 		"lint": "turbo run lint",
 		"dev": "turbo run dev",
 		"package": "turbo run package",
-		"deploy": "turbo run deploy"
+		"deploy": "turbo run deploy",
+		"release": "npm run build && changeset publish"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.24.3",
