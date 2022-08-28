@@ -71,7 +71,7 @@ export default class CSSVariableManager {
 
           if (match) {
             const url = `${match.groups.protocol}://${match.groups.url}`;
-  
+
             importUrls.push(url);
           }
         }
@@ -81,7 +81,7 @@ export default class CSSVariableManager {
         importUrls.map(async (url) => {
           try {
             const response = await axios(url, {
-              responseType: "text"
+              responseType: 'text',
             });
 
             const cssText = await response.data;
@@ -107,10 +107,13 @@ export default class CSSVariableManager {
               uri: fileURI,
               range: Range.create(
                 Position.create(
-                  decl.source.start.line,
-                  decl.source.start.column
+                  decl.source.start.line - 1,
+                  decl.source.start.column - 1
                 ),
-                Position.create(decl.source.end.line, decl.source.end.column)
+                Position.create(
+                  decl.source.end.line - 1,
+                  decl.source.end.column - 1
+                )
               ),
             },
           };
