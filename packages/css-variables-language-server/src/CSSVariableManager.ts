@@ -5,7 +5,9 @@ import * as culori from 'culori';
 import axios from 'axios';
 import postcss from 'postcss';
 import { pathToFileURL } from 'url';
-
+import path from 'path';
+import postcssSCSS from 'postcss-scss';
+import postcssLESS from 'postcss-less';
 import CacheManager from './CacheManager';
 import isColor from './utils/isColor';
 import { culoriColorToVscodeColor } from './utils/culoriColorToVscodeColor';
@@ -45,6 +47,20 @@ export const defaultSettings: CSSVariablesSettings = {
   ],
 };
 
+const getAST = (filePath: string, content: string) => {
+  const fileExtension = path.extname(filePath);
+
+  if (fileExtension === '.less') {
+    return postcssLESS.parse(content);
+  }
+  
+  if (fileExtension === '.scss') {
+    return postcssSCSS.parse(content);
+  }
+
+  return postcss.parse(content);
+};
+
 export default class CSSVariableManager {
   private cacheManager = new CacheManager<CSSVariable>();
 
@@ -58,7 +74,8 @@ export default class CSSVariableManager {
     try {
       // reset cache for this file
       this.cacheManager.clearFileCache(filePath);
-      const ast = postcss.parse(content);
+
+      const ast = getAST(filePath, content);
       const fileURI = pathToFileURL(filePath).toString();
 
       const importUrls = [];
@@ -130,7 +147,7 @@ export default class CSSVariableManager {
         }
       });
     } catch (error) {
-      console.error(error);
+      console.error(filePath);
     }
   };
 
