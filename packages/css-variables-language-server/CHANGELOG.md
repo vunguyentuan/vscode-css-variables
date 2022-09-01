@@ -1,5 +1,11 @@
 # css-variables-language-server
 
+## 2.5.0
+
+### Minor Changes
+
+- 1eedbba: use postcss-sass and postcss-less to parse the relevant files
+
 ## 2.4.1
 
 ### Patch Changes
