@@ -1,5 +1,12 @@
 # vscode-css-variables
 
+## 2.6.0
+
+### Minor Changes
+
+- 211fe35: Fix SASS and LESS parser
+  Bump version to 2.4.3
+
 ## 2.4.2
 
 ### Patch Changes
