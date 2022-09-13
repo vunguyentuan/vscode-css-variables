@@ -54,5 +54,34 @@ You can easily knows where the variable coming from by hold Alt/Cmd and click to
 
 <img src="https://github.com/vunguyentuan/vscode-css-variables/raw/master/demo/goto-definition-trim.gif" alt="" />
 
+## FAQ
+### I want to add files in `node_modules` folder
+*.vscode/settings.json*
+```json
+{
+  "cssVariables.lookupFiles": [
+    "**/*.css",
+    "**/*.scss",
+    "**/*.sass",
+    "**/*.less",
+		// if you want to include files in node_modules
+    "node_modules/open-props/open-props.min.css"
+  ]
+}
+```
+
+### I want to add files from public url, CDN
+*src/style.css*
+```css
+@import 'https://cdn.jsdelivr.net/gh/KunalTanwar/tailwind-colors/dist/css/colors.min.css';
+
+body {
+  color: var(--indigo-50);
+}
+
+...
+```
+
+### Example source code https://github.com/vunguyentuan/test-css-var
 ## Full demo
 ![Demo](https://github.com/vunguyentuan/vscode-css-variables/raw/master/demo/demo.v2.3.0.gif)

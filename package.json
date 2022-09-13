@@ -12,7 +12,7 @@
 		"dev": "turbo run dev",
 		"package": "turbo run package",
 		"deploy": "turbo run deploy",
-		"release": "npm run build && changeset publish"
+		"release": "cp README.md packages/vscode-css-variables/README.md && npm run build && changeset publish"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.24.3",
