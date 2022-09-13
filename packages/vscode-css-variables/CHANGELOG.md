@@ -1,5 +1,11 @@
 # vscode-css-variables
 
+## 2.6.1
+
+### Patch Changes
+
+- b3c7d68: update activated documents, avoid trigger autocomplete on irrelevant files
+
 ## 2.6.0
 
 ### Minor Changes

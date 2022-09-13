@@ -1,5 +1,11 @@
 # css-variables-language-server
 
+## 2.6.1
+
+### Patch Changes
+
+- 50a631d: remove commit characters as it confuse some users
+
 ## 2.5.0
 
 ### Minor Changes
