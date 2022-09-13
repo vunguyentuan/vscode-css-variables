@@ -64,7 +64,6 @@ You can easily knows where the variable coming from by hold Alt/Cmd and click to
     "**/*.scss",
     "**/*.sass",
     "**/*.less",
-		// if you want to include files in node_modules
     "node_modules/open-props/open-props.min.css"
   ]
 }
