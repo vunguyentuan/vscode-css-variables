@@ -192,7 +192,6 @@ connection.onCompletion(
         label: varSymbol.name,
         detail: varSymbol.value,
         documentation: varSymbol.value,
-        commitCharacters: [' ', ';', '{', '}'],
         insertText,
         kind: isColor(varSymbol.value)
           ? CompletionItemKind.Color
