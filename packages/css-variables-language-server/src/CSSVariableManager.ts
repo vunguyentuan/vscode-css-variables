@@ -34,16 +34,17 @@ export interface CSSVariablesSettings {
 export const defaultSettings: CSSVariablesSettings = {
   lookupFiles: ['**/*.less', '**/*.scss', '**/*.sass', '**/*.css'],
   blacklistFolders: [
-    '**/.git',
-    '**/.svn',
-    '**/.hg',
-    '**/CVS',
     '**/.DS_Store',
-    '**/node_modules',
+    '**/.git',
+    '**/.hg',
+    '**/.next',
+    '**/.svn',
     '**/bower_components',
-    '**/tmp',
+    '**/CVS',
     '**/dist',
+    '**/node_modules',
     '**/tests',
+    '**/tmp',
   ],
 };
 
