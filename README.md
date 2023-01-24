@@ -2,12 +2,6 @@
 
 > Working with CSS Variables is a pain, this extension enhances the Web Development experience by providing advanced features such as autocomplete, color preview, and go to definition.
 
-<p align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=vunguyentuan.vscode-css-variables"><img src="https://vsmarketplacebadge.apphb.com/installs-short/vunguyentuan.vscode-css-variables.svg" alt="Installs"/></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=vunguyentuan.vscode-css-variables"><img src="https://vsmarketplacebadge.apphb.com/version/vunguyentuan.vscode-css-variables.svg" alt=""/></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=vunguyentuan.vscode-css-variables"><img src="https://vsmarketplacebadge.apphb.com/rating-star/vunguyentuan.vscode-css-variables.svg" alt=""/></a>
-</p>
-
 ## Installation
 
 **[Install via the Visual Studio Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=vunguyentuan.vscode-css-variables)**
