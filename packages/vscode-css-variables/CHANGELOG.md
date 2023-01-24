@@ -1,5 +1,11 @@
 # vscode-css-variables
 
+## 2.6.3
+
+### Patch Changes
+
+- d7effa1: remove badges as it broken
+
 ## 2.6.2
 
 ### Patch Changes
