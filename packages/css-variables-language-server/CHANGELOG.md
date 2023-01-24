@@ -1,5 +1,11 @@
 # css-variables-language-server
 
+## 2.6.2
+
+### Patch Changes
+
+- a36efd0: Ignore .next & .cache folders, reorder alphabetically
+
 ## 2.6.1
 
 ### Patch Changes
