@@ -132,7 +132,8 @@
 		"eslint": "^8.23.0",
 		"eslint-config-airbnb-typescript": "^17.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.35.1",
-		"@typescript-eslint/parser": "^5.35.1"
+		"@typescript-eslint/parser": "^5.35.1",
+		"css-variables-language-server": "*"
 	},
 	"__metadata": {
 		"id": "3f96fda8-094b-4817-97fb-a7eab7a8f5e0",
