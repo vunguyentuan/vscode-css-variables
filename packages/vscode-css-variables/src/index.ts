@@ -12,6 +12,7 @@ import {
   ServerOptions,
   TransportKind,
 } from 'vscode-languageclient/node';
+import registerCommands from './commands';
 
 let client: LanguageClient;
 
@@ -76,6 +77,8 @@ export function activate(context: ExtensionContext) {
 
   // Start the client. This will also launch the server
   client.start();
+
+  registerCommands(context, client);
 }
 
 export function deactivate(): Thenable<void> | undefined {
