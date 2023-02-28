@@ -32,6 +32,12 @@
 	},
 	"main": "./dist/index.js",
 	"contributes": {
+		"commands": [
+			{
+				"command": "vscode-css-variables.search",
+				"title": "Search for css variable"
+			}
+		],
 		"configuration": {
 			"title": "CSS Variables",
 			"properties": {

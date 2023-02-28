@@ -199,10 +199,6 @@ connection.onCompletion(
         sortText: 'z',
       };
 
-      if (isFunctionCall) {
-        completion.detail = varSymbol.value;
-      }
-
       items.push(completion);
     });
 
@@ -316,6 +312,37 @@ connection.onDefinition((params) => {
   }
 
   return null;
+});
+
+// search a css variable by name or value;
+connection.onRequest('search', async (params): Promise<CompletionItem[]> => {
+  if (!params || typeof params !== 'string') {
+    return [];
+  }
+  const items: CompletionItem[] = [];
+  cssVariableManager.getAll().forEach((variable) => {
+    const varSymbol = variable.symbol;
+    const { name, value } = varSymbol;
+
+    // either of name and value can compare to params
+    if (!name.includes(params) && !value.startsWith(params)) {
+      return;
+    }
+    const insertText = `var(${varSymbol.name})`;
+    const completion: CompletionItem = {
+      label: name,
+      detail: value,
+      documentation: value,
+      insertText,
+      kind: isColor(value)
+        ? CompletionItemKind.Color
+        : CompletionItemKind.Variable,
+      sortText: 'z',
+    };
+    items.push(completion);
+  });
+
+  return items;
 });
 
 // Make the text document manager listen on the connection
