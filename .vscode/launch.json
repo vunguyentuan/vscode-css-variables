@@ -10,23 +10,14 @@
       "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages/vscode-css-variables"],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/vscode-css-variables/dist/**/*.js"],
-      "preLaunchTask": "npm: build"
+      "preLaunchTask": "npm: debug"
     },
     {
       "type": "node",
       "request": "attach",
-      "name": "Attach to Server 6011",
+      "name": "Attach to Server 6009",
       "address": "localhost",
-      "port": 6011,
-      "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/packages/vscode-css-variables/dist/**/*.js"]
-    },
-    {
-      "type": "node",
-      "request": "attach",
-      "name": "Attach to Server 6012",
-      "address": "localhost",
-      "port": 6012,
+      "port": 6009,
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/vscode-css-variables/dist/**/*.js"]
     }

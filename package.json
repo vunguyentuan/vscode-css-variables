@@ -7,6 +7,7 @@
 	],
 	"scripts": {
 		"build": "turbo run build",
+		"debug": "turbo run build -- --sourcemap",
 		"test": "turbo run test",
 		"lint": "turbo run lint",
 		"dev": "turbo run dev",

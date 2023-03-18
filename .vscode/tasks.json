@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "build",
+			"script": "debug",
 			"group": "build",
 			"presentation": {
 				"panel": "dedicated",
