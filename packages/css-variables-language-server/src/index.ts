@@ -284,7 +284,6 @@ connection.onHover((params) => {
   if (cssVariable) {
     return {
       contents: cssVariable.symbol.value,
-      range: cssVariable.definition.range,
     } as Hover;
   }
 
