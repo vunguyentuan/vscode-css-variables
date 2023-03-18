@@ -137,11 +137,10 @@ export default class CSSVariableManager {
             },
           };
 
-          if (isColor(decl.value)) {
-            const culoriColor = culori.parse(decl.value);
-            if (culoriColor) {
-              variable.color = culoriColorToVscodeColor(culoriColor);
-            }
+          const culoriColor = culori.parse(decl.value);
+
+          if (culoriColor) {
+            variable.color = culoriColorToVscodeColor(culoriColor);
           }
 
           // add to cache
