@@ -3,12 +3,16 @@
 	"description": "CSS Variables Language Server in node.",
 	"version": "2.6.2",
 	"author": "Vu Nguyen",
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/vunguyentuan/vscode-css-variables.git"
 	},
-	"main": "dist/index.js",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+  "license": "MIT",
+  "files": [
+    "dist/**"
+  ],
 	"dependencies": {
 		"axios": "^0.27.2",
 		"culori": "0.20.1",
