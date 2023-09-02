@@ -22,6 +22,7 @@ import { indexToPosition } from './utils/indexToPosition';
 import { getCurrentWord } from './utils/getCurrentWord';
 import { isInFunctionExpression } from './utils/isInFunctionExpression';
 import CSSVariableManager, { CSSVariablesSettings, defaultSettings } from './CSSVariableManager';
+import { formatHex } from 'culori';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -199,6 +200,11 @@ connection.onCompletion(
         sortText: 'z',
       };
 
+      if (isColor(varSymbol.value)) {
+        // convert to hex code
+        completion.documentation = formatHex(varSymbol.value);
+      }
+
       if (isFunctionCall) {
         completion.detail = varSymbol.value;
       }
@@ -278,7 +284,6 @@ connection.onHover((params) => {
   if (cssVariable) {
     return {
       contents: cssVariable.symbol.value,
-      range: cssVariable.definition.range,
     } as Hover;
   }
 
