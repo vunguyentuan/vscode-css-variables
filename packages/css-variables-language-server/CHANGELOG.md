@@ -1,5 +1,12 @@
 # css-variables-language-server
 
+## 2.6.4
+
+### Patch Changes
+
+- f380403: feat: 52 support for color functional notation
+  fix: excessive highlighting when hovering over variable
+
 ## 2.6.2
 
 ### Patch Changes
