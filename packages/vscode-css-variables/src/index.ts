@@ -34,25 +34,28 @@ export function activate(context: ExtensionContext) {
     },
   };
 
+	const settings = workspace.getConfiguration('cssVariables');
+	const languages = settings.get('languages', [
+		'astro',
+		'svelte',
+		'vue',
+		'vue-html',
+		'vue-postcss',
+		'scss',
+		'postcss',
+		'less',
+		'css',
+		'html',
+		'javascript',
+		'javascriptreact',
+		'typescript',
+		'typescriptreact',
+		'source.css.styled',
+	]);
+
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [
-      'onLanguage:astro',
-      'onLanguage:svelte',
-      'onLanguage:vue',
-      'onLanguage:vue-html',
-      'onLanguage:vue-postcss',
-      'onLanguage:scss',
-      'onLanguage:postcss',
-      'onLanguage:less',
-      'onLanguage:css',
-      'onLanguage:html',
-      'onLanguage:javascript',
-      'onLanguage:javascriptreact',
-      'onLanguage:typescript',
-      'onLanguage:typescriptreact',
-      'onLanguage:source.css.styled',
-    ].map((event) => ({
+    documentSelector: languages.map((event) => ({
       scheme: 'file',
       language: event.split(':')[1],
     })),

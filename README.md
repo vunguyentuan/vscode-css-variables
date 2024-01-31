@@ -6,7 +6,7 @@
 
 **[Install via the Visual Studio Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=vunguyentuan.vscode-css-variables)**
 
-By default the extension only scan files with this glob patterns: 
+By default the extension only scan files with this glob patterns:
 
 ```json
 [
@@ -26,12 +26,33 @@ And ignore files in these folders:
 	"**/.hg",
 	"**/CVS",
 	"**/.DS_Store",
-	"**/.git",
 	"**/node_modules",
 	"**/bower_components",
 	"**/tmp",
 	"**/dist",
 	"**/tests"
+]
+```
+
+And provides suggestions to files for the following languages
+
+```json
+[
+	"astro",
+	"svelte",
+	"vue",
+	"vue-html",
+	"vue-postcss",
+	"scss",
+	"postcss",
+	"less",
+	"css",
+	"html",
+	"javascript",
+	"javascriptreact",
+	"typescript",
+	"typescriptreact",
+	"source.css.styled"
 ]
 ```
 

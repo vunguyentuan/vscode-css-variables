@@ -61,6 +61,28 @@
 						]
 					}
 				},
+				"cssVariables.languages": {
+					"type": "array",
+					"markdownDescription": "Configure the languages for which the extension should be activated. Read more about language identifiers [here](https://code.visualstudio.com/docs/languages/identifiers#_known-language-identifiers).",
+					"default": [
+						"astro",
+						"svelte",
+						"vue",
+						"vue-html",
+						"vue-postcss",
+						"scss",
+						"postcss",
+						"less",
+						"css",
+						"html",
+						"javascript",
+						"javascriptreact",
+						"typescript",
+						"typescriptreact",
+						"source.css.styled"
+					],
+					"scope": 3
+				},
 				"cssVariables.blacklistFolders": {
 					"type": "array",
 					"markdownDescription": "Configure glob patterns for excluding files and folders. The extension will not scan variables in these files and folders. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options).",
@@ -70,7 +92,6 @@
 						"**/.hg",
 						"**/CVS",
 						"**/.DS_Store",
-						"**/.git",
 						"**/node_modules",
 						"**/bower_components",
 						"**/tmp",
