@@ -1,5 +1,11 @@
 # vscode-css-variables
 
+## 2.6.5
+
+### Patch Changes
+
+- d887de0: Added setting to configure languages the extension should provide suggestions
+
 ## 2.6.3
 
 ### Patch Changes
