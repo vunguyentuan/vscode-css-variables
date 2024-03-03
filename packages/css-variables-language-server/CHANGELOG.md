@@ -1,5 +1,16 @@
 # css-variables-language-server
 
+## 2.7.0
+
+### Minor Changes
+
+- 3a5bfa9: Add executable for language server to run from the commandline.
+
+  ```sh
+  $ npm install -g css-variables-language-server
+  $ css-variables-language-server --stdio
+  ```
+
 ## 2.6.4
 
 ### Patch Changes
