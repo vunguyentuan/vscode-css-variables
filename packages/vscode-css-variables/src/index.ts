@@ -55,9 +55,9 @@ export function activate(context: ExtensionContext) {
 
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
-    documentSelector: languages.map((event) => ({
+    documentSelector: languages.map((language) => ({
       scheme: 'file',
-      language: event.split(':')[1],
+      language,
     })),
     synchronize: {
       fileEvents: [
