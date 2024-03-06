@@ -7,7 +7,7 @@
       "request": "launch",
       "name": "Launch Client",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages/vscode-css-variables"],
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}/packages/vscode-css-variables", "--disable-extensions"],
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/packages/vscode-css-variables/dist/**/*.js"],
       "preLaunchTask": "npm: build"
