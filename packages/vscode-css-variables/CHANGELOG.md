@@ -1,5 +1,11 @@
 # vscode-css-variables
 
+## 2.7.1
+
+### Patch Changes
+
+- ee114b1: Fixed settings to only contribute this extension to files with specified languages
+
 ## 2.6.5
 
 ### Patch Changes
