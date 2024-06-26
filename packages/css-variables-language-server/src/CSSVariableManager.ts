@@ -164,16 +164,21 @@ export default class CSSVariableManager {
 
       ast.walkDecls((decl) => {
         if (decl.prop.startsWith('--')) {
-          this.setCssVariable(decl.prop, decl.value, fileURI,Range.create(
-            Position.create(
-              decl.source.start.line - 1,
-              decl.source.start.column - 1
-            ),
-            Position.create(
-              decl.source.end.line - 1,
-              decl.source.end.column - 1
+          this.setCssVariable(
+            decl.prop,
+            decl.value,
+            fileURI,
+            Range.create(
+              Position.create(
+                decl.source.start.line - 1,
+                decl.source.start.column - 1
+              ),
+              Position.create(
+                decl.source.end.line - 1,
+                decl.source.end.column - 1
+              )
             )
-          ));
+          );
         }
       });
 
