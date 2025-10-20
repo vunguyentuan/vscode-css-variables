@@ -2,6 +2,8 @@
 
 > Working with CSS Variables is a pain, this extension enhances the Web Development experience by providing advanced features such as autocomplete, color preview, and go to definition.
 
+Checkout https://www.chronoid.com?utm=github
+
 ## Installation
 
 **[Install via the Visual Studio Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=vunguyentuan.vscode-css-variables)**
