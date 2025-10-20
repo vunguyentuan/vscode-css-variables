@@ -2,7 +2,7 @@
 
 > Working with CSS Variables is a pain, this extension enhances the Web Development experience by providing advanced features such as autocomplete, color preview, and go to definition.
 
-Checkout https://www.chronoid.com?utm=github
+Checkout [Chronoid App - Automatic Time Tracking & Productivity for macOS →](https://www.chronoid.com?utm=github) 
 
 ## Installation
 
