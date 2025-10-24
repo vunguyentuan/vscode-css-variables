@@ -8,6 +8,7 @@
     --h3: 18px;
     --text-base: 16px;
     --carousel-bg: var(--main-bg-color);
+    --carousel-bg-nested: var(--carousel-bg);
   }
 }
 

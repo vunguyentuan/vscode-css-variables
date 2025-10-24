@@ -16,17 +16,14 @@ async function runTest(
   expect(allVars.get('--h2').symbol.value).toEqual('22px');
   expect(allVars.get('--h3').symbol.value).toEqual('18px');
   expect(allVars.get('--text-base').symbol.value).toEqual('16px');
-  expect(allVars.get('--carousel-bg').symbol.value).toEqual(
-    'var(--main-bg-color)'
-  );
+  expect(allVars.get('--carousel-bg').symbol.value).toEqual('brown');
+  expect(allVars.get('--carousel-bg-nested').symbol.value).toEqual('brown');
   expect(allVars.get('--child-main-bg-color').symbol.value).toEqual('brown');
   expect(allVars.get('--child-h1').symbol.value).toEqual('26px');
   expect(allVars.get('--child-h2').symbol.value).toEqual('22px');
   expect(allVars.get('--child-h3').symbol.value).toEqual('18px');
   // expect(allVars.get('--child-text-base').symbol.value).toEqual('16px');
-  expect(allVars.get('--child-carousel-bg').symbol.value).toEqual(
-    'var(--main-bg-color)'
-  );
+  expect(allVars.get('--child-carousel-bg').symbol.value).toEqual('brown');
 
   if (typeof additionalChecks === 'function') {
     await additionalChecks(allVars);
