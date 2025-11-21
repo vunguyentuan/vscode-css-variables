@@ -1,0 +1,60 @@
+name: Publish to Marketplace
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Publishing target'
+        required: true
+        type: choice
+        options:
+          - 'vscode-marketplace'
+          - 'openvsx'
+          - 'both'
+        default: 'both'
+
+jobs:
+  publish:
+    name: Force Publish to Marketplace
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          CI: true
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Package extension
+        working-directory: ./packages/vscode-css-variables
+        run: npx vsce package
+
+      - name: Publish to VSCode Marketplace
+        if: inputs.target == 'vscode-marketplace' || inputs.target == 'both'
+        working-directory: ./packages/vscode-css-variables
+        run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
+
+      - name: Publish to OpenVSX
+        if: inputs.target == 'openvsx' || inputs.target == 'both'
+        working-directory: ./packages/vscode-css-variables
+        run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-css-variables-vsix
+          path: ./packages/vscode-css-variables/*.vsix
+          retention-days: 30
