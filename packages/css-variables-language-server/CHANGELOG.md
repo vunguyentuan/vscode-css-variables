@@ -1,5 +1,11 @@
 # css-variables-language-server
 
+## 2.7.2
+
+### Patch Changes
+
+- 66d4b53: Fixed LSP message pollution by URL fetch failures
+
 ## 2.7.0
 
 ### Minor Changes
