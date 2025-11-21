@@ -44,6 +44,56 @@ npm run deploy     # Deploy to VS Code marketplace
 npm run release    # Build and publish to npm (uses changesets)
 ```
 
+### Version Management with Changesets
+
+This project uses [Changesets](https://github.com/changesets/changesets) for version management. GitHub Actions automatically handle version bumping and releases.
+
+**IMPORTANT: Never run `changeset version` manually!** GitHub Actions will handle this.
+
+#### Adding a Changeset
+
+When you make changes that require a version bump:
+
+1. **Create a changeset file manually** (non-interactive):
+   ```bash
+   # Create a file in .changeset/ with a descriptive name
+   # Example: .changeset/add-nested-variables.md
+   ```
+
+2. **Changeset file format**:
+   ```markdown
+   ---
+   "css-variables-language-server": minor
+   "vscode-css-variables": minor
+   ---
+
+   Description of your changes.
+
+   - Feature 1
+   - Feature 2
+
+   Example code if needed.
+   ```
+
+3. **Commit only the changeset file**:
+   ```bash
+   git add .changeset/your-changeset.md
+   git commit -m "add changeset for feature X"
+   git push
+   ```
+
+4. **GitHub Actions will automatically**:
+   - Detect the changeset
+   - Create a "Version Packages" PR
+   - Bump versions in package.json
+   - Update CHANGELOG.md files
+   - When the PR is merged, publish to npm and VS Code marketplace
+
+**Version bump types**:
+- `patch`: Bug fixes (2.7.2 → 2.7.3)
+- `minor`: New features (2.7.2 → 2.8.0)
+- `major`: Breaking changes (2.7.2 → 3.0.0)
+
 ## Architecture
 
 ### Language Server Pattern
