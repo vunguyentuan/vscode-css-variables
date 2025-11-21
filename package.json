@@ -2,6 +2,7 @@
 	"name": "root",
 	"version": "0.0.0",
 	"private": true,
+	"packageManager": "npm@11.3.0",
 	"workspaces": [
 		"packages/*"
 	],
@@ -15,7 +16,7 @@
 		"release": "cp README.md packages/vscode-css-variables/README.md && npm run build && changeset publish"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.24.3",
-		"turbo": "^1.4.3"
+		"@changesets/cli": "^2.29.7",
+		"turbo": "^2.6.1"
 	}
 }
