@@ -1,5 +1,11 @@
 # css-variables-language-server
 
+## 2.8.1
+
+### Patch Changes
+
+- efd2ef0: Fix bundler configuration
+
 ## 2.8.0
 
 ### Minor Changes
