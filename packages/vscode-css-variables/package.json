@@ -1,6 +1,6 @@
 {
 	"name": "vscode-css-variables",
-	"version": "2.7.1",
+	"version": "2.8.0",
 	"displayName": "CSS Variable Autocomplete",
 	"description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
 	"publisher": "vunguyentuan",
