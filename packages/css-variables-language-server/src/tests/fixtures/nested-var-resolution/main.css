@@ -1,0 +1,44 @@
+:root {
+  /* Direct color values */
+  --color-red: rgb(255, 0, 0);
+  --color-blue: #0000ff;
+  --color-green: hsl(120, 100%, 50%);
+
+  /* Single-level nesting */
+  --color-red-alias: var(--color-red);
+  --color-blue-alias: var(--color-blue);
+
+  /* Two-level nesting */
+  --color-red-alias-2: var(--color-red-alias);
+
+  /* Three-level nesting */
+  --color-red-alias-3: var(--color-red-alias-2);
+
+  /* Four-level nesting */
+  --color-red-alias-4: var(--color-red-alias-3);
+
+  /* Five-level nesting (max depth) */
+  --color-red-alias-5: var(--color-red-alias-4);
+
+  /* Six-level nesting (should stop at 5) */
+  --color-red-alias-6: var(--color-red-alias-5);
+
+  /* Fallback values */
+  --undefined-with-fallback: var(--does-not-exist, #ff00ff);
+  --nested-with-fallback: var(--also-undefined, var(--color-green));
+
+  /* Circular references (should not resolve) */
+  --circular-a: var(--circular-b);
+  --circular-b: var(--circular-a);
+
+  /* Complex values with multiple var() references */
+  --shadow-x: 2px;
+  --shadow-y: 4px;
+  --shadow-blur: 8px;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --box-shadow: var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-color);
+
+  /* Non-color variables (should not get color property) */
+  --spacing: 16px;
+  --font-size: 14px;
+}

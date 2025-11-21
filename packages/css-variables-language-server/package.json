@@ -12,19 +12,23 @@
   "bin": {
     "css-variables-language-server": "bin/index.js"
   },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "dependencies": {
-    "axios": "^0.27.2",
-    "culori": "0.20.1",
-    "fast-glob": "^3.2.7",
-    "less": "^4.1.3",
+    "axios": "^1.13.2",
+    "culori": "^4.0.2",
+    "fast-glob": "^3.3.3",
+    "less": "^4.4.2",
     "line-column": "^1.0.2",
-    "postcss": "^8.4.16",
+    "postcss": "^8.5.6",
     "postcss-less": "^6.0.0",
-    "postcss-scss": "^4.0.4",
-    "sass": "^1.54.7",
-    "vscode-languageserver": "^7.0.0",
-    "vscode-languageserver-textdocument": "^1.0.1",
-    "vscode-uri": "^3.0.3"
+    "postcss-scss": "^4.0.9",
+    "sass": "^1.94.2",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "vscode-uri": "^3.1.0"
   },
   "scripts": {
     "test": "jest",
@@ -34,17 +38,17 @@
     "lint": "eslint ./src --ext .ts,.tsx --fix"
   },
   "devDependencies": {
-    "@types/jest": "^28.1.8",
-    "@types/less": "^3.0.3",
-    "@types/postcss-less": "^4.0.2",
-    "@typescript-eslint/eslint-plugin": "^5.35.1",
-    "@typescript-eslint/parser": "^5.35.1",
-    "eslint": "^8.23.0",
-    "eslint-config-airbnb-typescript": "^17.0.0",
-    "jest": "^28.0.0",
-    "jest-environment-node-single-context": "^28.1.0",
-    "ts-jest": "^28.0.8",
-    "tsup": "^6.2.3",
-    "typescript": "^4.8.2"
+    "@types/jest": "^30.0.0",
+    "@types/less": "^3.0.8",
+    "@types/postcss-less": "^4.0.7",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "jest": "^30.2.0",
+    "jest-environment-node-single-context": "^29.4.0",
+    "ts-jest": "^29.4.5",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   }
 }

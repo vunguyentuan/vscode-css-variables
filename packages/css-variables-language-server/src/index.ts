@@ -151,23 +151,28 @@ documents.onDidClose((e) => {
   documentSettings.delete(e.document.uri);
 });
 
-connection.onDidChangeWatchedFiles((_change) => {
+connection.onDidChangeWatchedFiles(async (_change) => {
   // update cached variables
-  _change.changes.forEach((change) => {
-    const filePath = uriToPath(change.uri);
-    if (filePath) {
-      // remove variables from cache
-      if (change.type === FileChangeType.Deleted) {
-        cssVariableManager.clearFileCache(filePath);
-      } else {
-        const content = fs.readFileSync(filePath, 'utf8');
-        cssVariableManager.parseCSSVariablesFromText({
-          content,
-          filePath,
-        });
+  await Promise.all(
+    _change.changes.map(async (change) => {
+      const filePath = uriToPath(change.uri);
+      if (filePath) {
+        // remove variables from cache
+        if (change.type === FileChangeType.Deleted) {
+          cssVariableManager.clearFileCache(filePath);
+        } else {
+          const content = fs.readFileSync(filePath, 'utf8');
+          await cssVariableManager.parseCSSVariablesFromText({
+            content,
+            filePath,
+          });
+        }
       }
-    }
-  });
+    })
+  );
+
+  // After all file changes are processed, resolve variable references
+  cssVariableManager.resolveVariableReferences();
 });
 
 // This handler provides the initial list of the completion items.

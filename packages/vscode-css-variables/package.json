@@ -5,7 +5,9 @@
 	"description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
 	"publisher": "vunguyentuan",
 	"engines": {
-		"vscode": "^1.63.0"
+		"vscode": "^1.63.0",
+		"node": ">=20.0.0",
+		"npm": ">=10.0.0"
 	},
 	"keywords": [
 		"cssvariable",
@@ -137,29 +139,49 @@
 		"lint": "eslint ./src --ext .ts,.tsx --fix",
 		"pretest": "tsc -p ./ && rm -f .vscode-test/user-",
 		"test": "node ./out/test/runTest.js",
-		"deploy": "vsce publish",
-		"package": "vsce package --pre-release"
+		"deploy": "@vscode/vsce publish",
+		"package": "@vscode/vsce package --pre-release"
 	},
 	"devDependencies": {
-		"@types/mocha": "^9.1.1",
-		"@types/node": "^18.7.13",
-		"@types/vscode": "^1.63.0",
-		"@vscode/test-electron": "^2.1.5",
-		"mocha": "^10.0.0",
-		"tsup": "^6.2.3",
-		"typescript": "^4.8.2",
-		"vsce": "^2.10.2",
-		"vscode-languageclient": "^8.0.2",
-		"eslint": "^8.23.0",
-		"eslint-config-airbnb-typescript": "^17.0.0",
-		"@typescript-eslint/eslint-plugin": "^5.35.1",
-		"@typescript-eslint/parser": "^5.35.1",
-		"css-variables-language-server": "*"
+		"@types/jest": "^30.0.0",
+		"@types/less": "^3.0.8",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "^24.10.1",
+		"@types/postcss-less": "^4.0.7",
+		"@types/vscode": "^1.106.1",
+		"@typescript-eslint/eslint-plugin": "^7.18.0",
+		"@typescript-eslint/parser": "^7.18.0",
+		"@vscode/test-electron": "^2.5.2",
+		"@vscode/vsce": "^3.7.0",
+		"css-variables-language-server": "*",
+		"eslint": "^8.57.1",
+		"eslint-config-airbnb-typescript": "^18.0.0",
+		"jest": "^30.2.0",
+		"jest-environment-node-single-context": "^29.4.0",
+		"mocha": "^11.7.5",
+		"ts-jest": "^29.4.5",
+		"tsup": "^8.5.1",
+		"typescript": "^5.9.3",
+		"vscode-languageclient": "^9.0.1"
 	},
 	"__metadata": {
 		"id": "3f96fda8-094b-4817-97fb-a7eab7a8f5e0",
 		"publisherDisplayName": "Vu Nguyen",
 		"publisherId": "411219bd-68b8-4df2-9a3b-1ac214fcfd05",
 		"isPreReleaseVersion": false
+	},
+	"dependencies": {
+		"axios": "^1.13.2",
+		"culori": "^4.0.2",
+		"fast-glob": "^3.3.3",
+		"less": "^4.4.2",
+		"line-column": "^1.0.2",
+		"postcss": "^8.5.6",
+		"postcss-less": "^6.0.0",
+		"postcss-scss": "^4.0.9",
+		"sass": "^1.94.2",
+		"vscode-languageserver": "^9.0.1",
+		"vscode-languageserver-textdocument": "^1.0.12",
+		"vscode-uri": "^3.1.0"
 	}
 }

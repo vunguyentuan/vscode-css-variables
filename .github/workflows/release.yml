@@ -11,17 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
 
-      - name: Set up Node.js 16.16.0
-        uses: actions/setup-node@v2
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.16.0
-          
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
         env:
           CI: true
 
@@ -37,12 +41,9 @@ jobs:
       - name: Publish to VSCode Marketplace
         if: steps.changesets.outputs.published == 'true'
         working-directory: ./packages/vscode-css-variables
-        run: |
-          npm i
-          npx vsce publish -p ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
+
       - name: Publish to OpenVSX
         if: steps.changesets.outputs.published == 'true'
         working-directory: ./packages/vscode-css-variables
-        run: |
-          npm i
-          npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
+        run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
