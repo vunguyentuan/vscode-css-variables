@@ -19,6 +19,10 @@ async function runTest(
   expect(allVars.get('--carousel-bg').symbol.value).toEqual(
     'var(--main-bg-color)'
   );
+  // After resolution, --carousel-bg should have a color property
+  expect(allVars.get('--carousel-bg').color).toBeDefined();
+  expect(allVars.get('--carousel-bg').color).toEqual(allVars.get('--main-bg-color').color);
+
   expect(allVars.get('--child-main-bg-color').symbol.value).toEqual('brown');
   expect(allVars.get('--child-h1').symbol.value).toEqual('26px');
   expect(allVars.get('--child-h2').symbol.value).toEqual('22px');
@@ -27,6 +31,9 @@ async function runTest(
   expect(allVars.get('--child-carousel-bg').symbol.value).toEqual(
     'var(--main-bg-color)'
   );
+  // After resolution, --child-carousel-bg should have a color property
+  expect(allVars.get('--child-carousel-bg').color).toBeDefined();
+  expect(allVars.get('--child-carousel-bg').color).toEqual(allVars.get('--main-bg-color').color);
 
   if (typeof additionalChecks === 'function') {
     await additionalChecks(allVars);
@@ -107,5 +114,94 @@ describe('CSS Variable Manager', () => {
     const h1Var = allVars.get('--h1');
     expect(h1Var.symbol.value).toEqual('26px');
     expect(h1Var.color).toBeUndefined();
+  });
+
+  test('can resolve nested variable references and detect colors', async () => {
+    const cssManager = new CSSVariableManager();
+
+    await cssManager.parseAndSyncVariables([
+      path.join(__dirname, '../fixtures/nested-var-resolution'),
+    ]);
+
+    const allVars = cssManager.getAll();
+
+    // Test direct color values
+    expect(allVars.get('--color-red').symbol.value).toEqual('rgb(255, 0, 0)');
+    expect(allVars.get('--color-red').color).toBeDefined();
+
+    expect(allVars.get('--color-blue').symbol.value).toEqual('#0000ff');
+    expect(allVars.get('--color-blue').color).toBeDefined();
+
+    expect(allVars.get('--color-green').symbol.value).toEqual('hsl(120, 100%, 50%)');
+    expect(allVars.get('--color-green').color).toBeDefined();
+
+    // Test single-level nesting - value is still var() but should have color property
+    expect(allVars.get('--color-red-alias').symbol.value).toEqual('var(--color-red)');
+    expect(allVars.get('--color-red-alias').color).toBeDefined();
+    expect(allVars.get('--color-red-alias').color).toEqual(allVars.get('--color-red').color);
+
+    expect(allVars.get('--color-blue-alias').symbol.value).toEqual('var(--color-blue)');
+    expect(allVars.get('--color-blue-alias').color).toBeDefined();
+    expect(allVars.get('--color-blue-alias').color).toEqual(allVars.get('--color-blue').color);
+
+    // Test two-level nesting
+    expect(allVars.get('--color-red-alias-2').symbol.value).toEqual('var(--color-red-alias)');
+    expect(allVars.get('--color-red-alias-2').color).toBeDefined();
+    expect(allVars.get('--color-red-alias-2').color).toEqual(allVars.get('--color-red').color);
+
+    // Test three-level nesting
+    expect(allVars.get('--color-red-alias-3').symbol.value).toEqual('var(--color-red-alias-2)');
+    expect(allVars.get('--color-red-alias-3').color).toBeDefined();
+    expect(allVars.get('--color-red-alias-3').color).toEqual(allVars.get('--color-red').color);
+
+    // Test four-level nesting
+    expect(allVars.get('--color-red-alias-4').symbol.value).toEqual('var(--color-red-alias-3)');
+    expect(allVars.get('--color-red-alias-4').color).toBeDefined();
+    expect(allVars.get('--color-red-alias-4').color).toEqual(allVars.get('--color-red').color);
+
+    // Test five-level nesting (max depth)
+    expect(allVars.get('--color-red-alias-5').symbol.value).toEqual('var(--color-red-alias-4)');
+    expect(allVars.get('--color-red-alias-5').color).toBeDefined();
+    expect(allVars.get('--color-red-alias-5').color).toEqual(allVars.get('--color-red').color);
+
+    // Test six-level nesting (should stop at depth 5, cannot resolve to a color)
+    expect(allVars.get('--color-red-alias-6').symbol.value).toEqual('var(--color-red-alias-5)');
+    // At 6 levels, we hit the depth limit and cannot fully resolve, so no color
+    expect(allVars.get('--color-red-alias-6').color).toBeUndefined();
+
+    // Test fallback values
+    expect(allVars.get('--undefined-with-fallback').symbol.value).toEqual('var(--does-not-exist, #ff00ff)');
+    expect(allVars.get('--undefined-with-fallback').color).toBeDefined();
+
+    expect(allVars.get('--nested-with-fallback').symbol.value).toEqual('var(--also-undefined, var(--color-green))');
+    expect(allVars.get('--nested-with-fallback').color).toBeDefined();
+    expect(allVars.get('--nested-with-fallback').color).toEqual(allVars.get('--color-green').color);
+
+    // Test circular references (should not have color)
+    expect(allVars.get('--circular-a').symbol.value).toEqual('var(--circular-b)');
+    expect(allVars.get('--circular-a').color).toBeUndefined();
+
+    expect(allVars.get('--circular-b').symbol.value).toEqual('var(--circular-a)');
+    expect(allVars.get('--circular-b').color).toBeUndefined();
+
+    // Test non-color variables (should not have color)
+    expect(allVars.get('--spacing').symbol.value).toEqual('16px');
+    expect(allVars.get('--spacing').color).toBeUndefined();
+
+    expect(allVars.get('--font-size').symbol.value).toEqual('14px');
+    expect(allVars.get('--font-size').color).toBeUndefined();
+
+    // Test cross-file resolution
+    expect(allVars.get('--child-color-red').symbol.value).toEqual('var(--color-red)');
+    expect(allVars.get('--child-color-red').color).toBeDefined();
+    expect(allVars.get('--child-color-red').color).toEqual(allVars.get('--color-red').color);
+
+    expect(allVars.get('--child-color-blue-alias').symbol.value).toEqual('var(--color-blue-alias)');
+    expect(allVars.get('--child-color-blue-alias').color).toBeDefined();
+    expect(allVars.get('--child-color-blue-alias').color).toEqual(allVars.get('--color-blue').color);
+
+    expect(allVars.get('--child-nested').symbol.value).toEqual('var(--color-red-alias-3)');
+    expect(allVars.get('--child-nested').color).toBeDefined();
+    expect(allVars.get('--child-nested').color).toEqual(allVars.get('--color-red').color);
   });
 });

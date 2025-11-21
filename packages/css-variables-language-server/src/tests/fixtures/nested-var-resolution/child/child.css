@@ -1,0 +1,8 @@
+:root {
+  /* Cross-file references (referencing variables from main.css) */
+  --child-color-red: var(--color-red);
+  --child-color-blue-alias: var(--color-blue-alias);
+
+  /* Multi-level cross-file nesting */
+  --child-nested: var(--color-red-alias-3);
+}

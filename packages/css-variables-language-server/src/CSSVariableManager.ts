@@ -11,6 +11,7 @@ import postcssLESS from 'postcss-less';
 import CacheManager from './CacheManager';
 import isColor from './utils/isColor';
 import { culoriColorToVscodeColor } from './utils/culoriColorToVscodeColor';
+import { resolveVariableValue } from './utils/resolveVariableValue';
 
 export type CSSSymbol = {
   name: string
@@ -174,7 +175,41 @@ export default class CSSVariableManager {
         );
       });
     }
+
+    // After all files are parsed, resolve nested variable references
+    this.resolveAllVariableReferences();
   };
+
+  /**
+   * Resolves nested variable references (var(--name)) for all cached variables
+   * and updates their color property if the resolved value is a color
+   */
+  private resolveAllVariableReferences() {
+    const allVariables = this.cacheManager.getAll();
+
+    // Iterate through all variables and resolve their values
+    allVariables.forEach((cssVariable, varName) => {
+      const originalValue = cssVariable.symbol.value;
+
+      // Skip if already has a color (direct color value)
+      if (cssVariable.color) {
+        return;
+      }
+
+      // Try to resolve any var() references
+      const resolvedValue = resolveVariableValue(originalValue, allVariables);
+
+      // If the value was resolved (changed), try to parse it as a color
+      if (resolvedValue !== originalValue) {
+        const culoriColor = culori.parse(resolvedValue);
+
+        if (culoriColor) {
+          // Update the color property for this variable
+          cssVariable.color = culoriColorToVscodeColor(culoriColor);
+        }
+      }
+    });
+  }
 
   public getAll() {
     return this.cacheManager.getAll();
@@ -186,5 +221,13 @@ export default class CSSVariableManager {
 
   public clearAllCache() {
     this.cacheManager.clearAllCache();
+  }
+
+  /**
+   * Public method to trigger variable resolution
+   * Should be called after parsing files to resolve nested variable references
+   */
+  public resolveVariableReferences() {
+    this.resolveAllVariableReferences();
   }
 }
