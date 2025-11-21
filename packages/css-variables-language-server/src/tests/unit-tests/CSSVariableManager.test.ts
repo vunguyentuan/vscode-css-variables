@@ -59,4 +59,53 @@ describe('CSS Variable Manager', () => {
       expect(allVars.get('--slate-50').symbol.value).toEqual('#f8fafc');
     });
   });
+
+  test('can parse and detect OKLAB and OKLCH colors', async () => {
+    const cssManager = new CSSVariableManager();
+
+    await cssManager.parseAndSyncVariables([
+      path.join(__dirname, '../fixtures/oklab-oklch-colors'),
+    ]);
+
+    const allVars = cssManager.getAll();
+
+    // Test OKLAB colors
+    const oklabRed = allVars.get('--oklab-red');
+    expect(oklabRed.symbol.value).toEqual('oklab(0.628 0.225 0.126)');
+    expect(oklabRed.color).toBeDefined();
+
+    const oklabGreen = allVars.get('--oklab-green');
+    expect(oklabGreen.symbol.value).toEqual('oklab(0.519 -0.14 0.108)');
+    expect(oklabGreen.color).toBeDefined();
+
+    const oklabBlue = allVars.get('--oklab-blue');
+    expect(oklabBlue.symbol.value).toEqual('oklab(0.452 -0.032 -0.312)');
+    expect(oklabBlue.color).toBeDefined();
+
+    const oklabWithAlpha = allVars.get('--oklab-with-alpha');
+    expect(oklabWithAlpha.symbol.value).toEqual('oklab(0.628 0.225 0.126 / 0.5)');
+    expect(oklabWithAlpha.color).toBeDefined();
+
+    // Test OKLCH colors
+    const oklchRed = allVars.get('--oklch-red');
+    expect(oklchRed.symbol.value).toEqual('oklch(0.628 0.258 29.2)');
+    expect(oklchRed.color).toBeDefined();
+
+    const oklchGreen = allVars.get('--oklch-green');
+    expect(oklchGreen.symbol.value).toEqual('oklch(0.519 0.177 142.5)');
+    expect(oklchGreen.color).toBeDefined();
+
+    const oklchBlue = allVars.get('--oklch-blue');
+    expect(oklchBlue.symbol.value).toEqual('oklch(0.452 0.313 264.1)');
+    expect(oklchBlue.color).toBeDefined();
+
+    const oklchWithAlpha = allVars.get('--oklch-with-alpha');
+    expect(oklchWithAlpha.symbol.value).toEqual('oklch(0.628 0.258 29.2 / 0.8)');
+    expect(oklchWithAlpha.color).toBeDefined();
+
+    // Verify non-color variables don't have color property
+    const h1Var = allVars.get('--h1');
+    expect(h1Var.symbol.value).toEqual('26px');
+    expect(h1Var.color).toBeUndefined();
+  });
 });

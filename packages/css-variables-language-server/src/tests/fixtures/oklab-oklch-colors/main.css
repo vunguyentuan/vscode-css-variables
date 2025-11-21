@@ -1,0 +1,33 @@
+:root {
+  /* OKLAB colors */
+  --oklab-red: oklab(0.628 0.225 0.126);
+  --oklab-green: oklab(0.519 -0.14 0.108);
+  --oklab-blue: oklab(0.452 -0.032 -0.312);
+  --oklab-with-alpha: oklab(0.628 0.225 0.126 / 0.5);
+
+  /* OKLCH colors */
+  --oklch-red: oklch(0.628 0.258 29.2);
+  --oklch-green: oklch(0.519 0.177 142.5);
+  --oklch-blue: oklch(0.452 0.313 264.1);
+  --oklch-with-alpha: oklch(0.628 0.258 29.2 / 0.8);
+
+  /* Non-color values for comparison */
+  --main-bg-color: brown;
+  --h1: 26px;
+  --h2: 22px;
+  --h3: 18px;
+  --text-base: 16px;
+  --carousel-bg: var(--main-bg-color);
+}
+
+.oklab-example {
+  color: var(--oklab-red);
+  background-color: var(--oklab-green);
+  border-color: var(--oklab-blue);
+}
+
+.oklch-example {
+  color: var(--oklch-red);
+  background-color: var(--oklch-green);
+  border-color: var(--oklch-blue);
+}
