@@ -11,6 +11,7 @@ $bootstrap-sass-asset-helper: false !default;
 	--h3: 18px;
 	--text-base: 16px;
 	--carousel-bg: var(--main-bg-color);
+	--carousel-bg-nested: var(--carousel-bg);
 }
 
 //== Colors
