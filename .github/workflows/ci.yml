@@ -17,14 +17,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.16.0
+          node-version: 20.x
+          cache: 'npm'
+      - name: Enable Corepack
+        run: corepack enable
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Run headless test
-        uses: GabrielBB/xvfb-action@v1.0
+        uses: GabrielBB/xvfb-action@v1.6
         with:
           run: npm test

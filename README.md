@@ -8,6 +8,19 @@ Checkout [Chronoid App - Automatic Time Tracking & Productivity for macOS →](h
 
 **[Install via the Visual Studio Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=vunguyentuan.vscode-css-variables)**
 
+## Requirements
+
+- **Node.js**: >= 20.0.0 (LTS)
+- **npm**: >= 10.0.0
+
+If you're developing or contributing to this extension, make sure you have the correct Node.js version installed. You can use [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions:
+
+```bash
+nvm use
+```
+
+## Configuration
+
 By default the extension only scan files with this glob patterns:
 
 ```json
