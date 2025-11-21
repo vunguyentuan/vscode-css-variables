@@ -110,7 +110,7 @@ export default class CSSVariableManager {
               filePath: url,
             });
           } catch (err) {
-            console.log(err, `cannot fetch data from ${url}`);
+            console.error(err, `cannot fetch data from ${url}`);
           }
         })
       );
