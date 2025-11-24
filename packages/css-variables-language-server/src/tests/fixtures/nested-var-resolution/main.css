@@ -41,4 +41,5 @@
   /* Non-color variables (should not get color property) */
   --spacing: 16px;
   --font-size: 14px;
+  --font: 700 14px/16px 'Helvetica Neue', sans-serif;
 }
