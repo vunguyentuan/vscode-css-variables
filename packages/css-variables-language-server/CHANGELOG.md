@@ -1,5 +1,11 @@
 # css-variables-language-server
 
+## 2.8.2
+
+### Patch Changes
+
+- 2ad8e41: Prevent crashing when css variables have unexpected format such as `--font: var(--font-size)/var(--line-height);`
+
 ## 2.8.1
 
 ### Patch Changes
