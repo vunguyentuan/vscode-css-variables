@@ -201,7 +201,14 @@ export default class CSSVariableManager {
 
       // If the value was resolved (changed), try to parse it as a color
       if (resolvedValue !== originalValue) {
-        const culoriColor = culori.parse(resolvedValue);
+        let culoriColor: culori.Color;
+
+        try {
+          // Culori will throw on some invalid variables, we should not crash the server
+          culoriColor = culori.parse(resolvedValue);
+        } catch {
+          return;
+        }
 
         if (culoriColor) {
           // Update the color property for this variable
