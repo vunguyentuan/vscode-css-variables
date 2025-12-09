@@ -12,6 +12,7 @@ import {
   ColorInformation,
   FileChangeType,
   Hover,
+  TextEdit,
 } from 'vscode-languageserver/node';
 import * as fs from 'fs';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
@@ -19,7 +20,7 @@ import isColor from './utils/isColor';
 import { uriToPath } from './utils/protocol';
 import { findAll } from './utils/findAll';
 import { indexToPosition } from './utils/indexToPosition';
-import { getCurrentWord } from './utils/getCurrentWord';
+import { getCurrentWord, getCurrentWordInfo } from './utils/getCurrentWord';
 import { isInFunctionExpression } from './utils/isInFunctionExpression';
 import CSSVariableManager, { CSSVariablesSettings, defaultSettings } from './CSSVariableManager';
 import { formatHex } from 'culori';
@@ -184,7 +185,8 @@ connection.onCompletion(
     }
 
     const offset = doc.offsetAt(_textDocumentPosition.position);
-    const currentWord = getCurrentWord(doc, offset);
+    const wordInfo = getCurrentWordInfo(doc, offset);
+    const currentWord = wordInfo.word;
 
     const isFunctionCall = isInFunctionExpression(currentWord);
 
@@ -194,11 +196,17 @@ connection.onCompletion(
       const insertText = isFunctionCall
         ? varSymbol.name
         : `var(${varSymbol.name})`;
+      
+      const start = doc.positionAt(wordInfo.left + 1);
+      const end = doc.positionAt(wordInfo.right);
+      const range = { start, end };
+
       const completion: CompletionItem = {
         label: varSymbol.name,
         detail: varSymbol.value,
         documentation: varSymbol.value,
         insertText,
+        textEdit: TextEdit.replace(range, insertText),
         kind: isColor(varSymbol.value)
           ? CompletionItemKind.Color
           : CompletionItemKind.Variable,
