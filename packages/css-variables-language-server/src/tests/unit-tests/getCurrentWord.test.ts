@@ -19,9 +19,6 @@ describe('getCurrentWord', () => {
     // v:0, a:1, r:2, (:3, -:4, -:5, ):6
     // offset 6 (at ))
     const word = getCurrentWord(document, 6);
-    // Current buggy behavior: includes ) because right starts at offset+1
-    // Expected behavior: should exclude )
-    // But let's see what it does now.
-    // If I run this test, I can verify the bug.
+    expect(word).toBe('(--');
   });
 });
