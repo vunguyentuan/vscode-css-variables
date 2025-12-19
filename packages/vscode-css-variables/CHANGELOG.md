@@ -1,5 +1,11 @@
 # vscode-css-variables
 
+## 2.8.3
+
+### Patch Changes
+
+- 28c121e: Fix issue where extra hyphens are added when completing a variable starting with hyphens.
+
 ## 2.8.2
 
 ### Patch Changes
