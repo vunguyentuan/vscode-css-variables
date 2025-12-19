@@ -1,8 +1,14 @@
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-export function getCurrentWord(document: TextDocument, offset: number): string {
+export interface WordInfo {
+  word: string;
+  left: number;
+  right: number;
+}
+
+export function getCurrentWordInfo(document: TextDocument, offset: number): WordInfo {
   let left = offset - 1;
-  let right = offset + 1;
+  let right = offset;
   const text = document.getText();
 
   while (left >= 0 && ' \t\n\r":{[()]},*>+'.indexOf(text.charAt(left)) === -1) {
@@ -16,5 +22,13 @@ export function getCurrentWord(document: TextDocument, offset: number): string {
     right++;
   }
 
-  return text.substring(left, right);
+  return {
+    word: text.substring(left, right),
+    left,
+    right
+  };
+}
+
+export function getCurrentWord(document: TextDocument, offset: number): string {
+  return getCurrentWordInfo(document, offset).word;
 }
