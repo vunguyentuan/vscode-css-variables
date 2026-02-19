@@ -127,6 +127,11 @@
 					],
 					"default": "off",
 					"description": "Traces the communication between VS Code and the language server."
+				},
+				"cssVariables.enableCustomMedia": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable indexing and completion for @custom-media rules."
 				}
 			}
 		}

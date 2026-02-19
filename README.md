@@ -71,6 +71,19 @@ And provides suggestions to files for the following languages
 ]
 ```
 
+
+### Custom Media Support
+
+You can enable indexing of `@custom-media` rules. When enabled the server will provide
+completion, hover information and go‑to‑definition for custom media names:
+
+*.vscode/settings.json*
+```json
+{
+  "cssVariables.enableCustomMedia": true
+}
+```
+
 ## Features
 ### Autocomplete & Color Preview
 

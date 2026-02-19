@@ -61,6 +61,9 @@ connection.onInitialize(async (params: InitializeParams) => {
       // Tell the client that this server supports code completion.
       completionProvider: {
         resolveProvider: true,
+        // trigger on hyphen so that variables and custom-media suggestions
+        // are requested even inside `@media (--)` clauses.
+        triggerCharacters: ['-'],
       },
       definitionProvider: true,
       hoverProvider: true,
@@ -153,6 +156,7 @@ documents.onDidClose((e) => {
 });
 
 connection.onDidChangeWatchedFiles(async (_change) => {
+  const settings = await getDocumentSettings();
   // update cached variables
   await Promise.all(
     _change.changes.map(async (change) => {
@@ -166,6 +170,7 @@ connection.onDidChangeWatchedFiles(async (_change) => {
           await cssVariableManager.parseCSSVariablesFromText({
             content,
             filePath,
+            settings,
           });
         }
       }
@@ -177,8 +182,40 @@ connection.onDidChangeWatchedFiles(async (_change) => {
 });
 
 // This handler provides the initial list of the completion items.
+
+// Helper that determines whether the given offset is located between the
+// opening and closing parentheses of the most recent `@media` rule that
+// appears before the offset. The goal is to restrict custom-media
+// suggestions to `@media` expressions only.
+function isInMediaContext(document: TextDocument, offset: number): boolean {
+  const text = document.getText();
+  // locate the last `@media` before the cursor
+  const mediaIdx = text.lastIndexOf('@media', offset - 1);
+  if (mediaIdx === -1) {
+    return false;
+  }
+
+  // find first '(' after the keyword
+  const openIdx = text.indexOf('(', mediaIdx);
+  if (openIdx === -1 || openIdx >= offset) {
+    // no opening paren yet, or cursor is before it
+    return false;
+  }
+
+  // find matching closing paren (simple search; assumes well-formed)
+  const closeIdx = text.indexOf(')', openIdx);
+  if (closeIdx === -1) {
+    // not closed yet – cursor is definitely inside
+    return true;
+  }
+
+  // cursor must be before the closing paren to be considered inside
+  return offset <= closeIdx;
+}
+
 connection.onCompletion(
-  (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
+  async (_textDocumentPosition: TextDocumentPositionParams): Promise<CompletionItem[]> => {
+    const settings = await getDocumentSettings();
     const doc = documents.get(_textDocumentPosition.textDocument.uri);
     if (!doc) {
       return [];
@@ -191,39 +228,63 @@ connection.onCompletion(
     const isFunctionCall = isInFunctionExpression(currentWord);
 
     const items: CompletionItem[] = [];
-    cssVariableManager.getAll().forEach((variable) => {
-      const varSymbol = variable.symbol;
-      const insertText = isFunctionCall
-        ? varSymbol.name
-        : `var(${varSymbol.name})`;
-      
-      const start = doc.positionAt(wordInfo.left + 1);
-      const end = doc.positionAt(wordInfo.right);
-      const range = { start, end };
+    const mediaContext = settings.enableCustomMedia && isInMediaContext(doc, offset);
 
-      const completion: CompletionItem = {
-        label: varSymbol.name,
-        detail: varSymbol.value,
-        documentation: varSymbol.value,
-        insertText,
-        textEdit: TextEdit.replace(range, insertText),
-        kind: isColor(varSymbol.value)
-          ? CompletionItemKind.Color
-          : CompletionItemKind.Variable,
-        sortText: 'z',
-      };
+    if (!mediaContext) {
+      // in the normal case we show all CSS variable completions
+      cssVariableManager.getAll().forEach((variable) => {
+        const varSymbol = variable.symbol;
+        const insertText = isFunctionCall
+          ? varSymbol.name
+          : `var(${varSymbol.name})`;
+        
+        const start = doc.positionAt(wordInfo.left + 1);
+        const end = doc.positionAt(wordInfo.right);
+        const range = { start, end };
 
-      if (isColor(varSymbol.value)) {
-        // convert to hex code
-        completion.documentation = formatHex(varSymbol.value);
-      }
+        const completion: CompletionItem = {
+          label: varSymbol.name,
+          detail: varSymbol.value,
+          documentation: varSymbol.value,
+          insertText,
+          textEdit: TextEdit.replace(range, insertText),
+          kind: isColor(varSymbol.value)
+            ? CompletionItemKind.Color
+            : CompletionItemKind.Variable,
+          sortText: 'z',
+        };
 
-      if (isFunctionCall) {
-        completion.detail = varSymbol.value;
-      }
+        if (isColor(varSymbol.value)) {
+          // convert to hex code
+          completion.documentation = formatHex(varSymbol.value);
+        }
 
-      items.push(completion);
-    });
+        if (isFunctionCall) {
+          completion.detail = varSymbol.value;
+        }
+
+        items.push(completion);
+      });
+    }
+
+    if (mediaContext) {
+      // only custom media entries
+      cssVariableManager.getAllCustomMedia().forEach((cm) => {
+        const start = doc.positionAt(wordInfo.left + 1);
+        const end = doc.positionAt(wordInfo.right);
+        const range = { start, end };
+        const completion: CompletionItem = {
+          label: cm.name,
+          detail: cm.params,
+          documentation: cm.params,
+          insertText: cm.name,
+          textEdit: TextEdit.replace(range, cm.name),
+          kind: CompletionItemKind.Variable,
+          sortText: 'z',
+        };
+        items.push(completion);
+      });
+    }
 
     return items;
   }
@@ -278,7 +339,8 @@ connection.onDocumentColor((params): ColorInformation[] => {
   return colors;
 });
 
-connection.onHover((params) => {
+connection.onHover(async (params) => {
+  const settings = await getDocumentSettings();
   const doc = documents.get(params.textDocument.uri);
 
   if (!doc) {
@@ -300,6 +362,13 @@ connection.onHover((params) => {
     } as Hover;
   }
 
+  if (settings.enableCustomMedia) {
+    const cm = cssVariableManager.getCustomMedia(nornalizedWord);
+    if (cm) {
+      return { contents: cm.params } as Hover;
+    }
+  }
+
   return null;
 });
 
@@ -314,7 +383,8 @@ connection.onColorPresentation((params) => {
   return [];
 });
 
-connection.onDefinition((params) => {
+connection.onDefinition(async (params) => {
+  const settings = await getDocumentSettings();
   const doc = documents.get(params.textDocument.uri);
 
   if (!doc) {
@@ -331,6 +401,13 @@ connection.onDefinition((params) => {
 
   if (cssVariable) {
     return cssVariable.definition;
+  }
+
+  if (settings.enableCustomMedia) {
+    const cm = cssVariableManager.getCustomMedia(nornalizedWord);
+    if (cm) {
+      return cm.definition;
+    }
   }
 
   return null;

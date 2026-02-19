@@ -24,9 +24,20 @@ export type CSSVariable = {
   color?: Color
 }
 
+export type CSSCustomMedia = {
+  name: string
+  params: string
+  definition: Location
+}
+
 export interface CSSVariablesSettings {
   lookupFiles: string[]
   blacklistFolders: string[]
+  /**
+   * When enabled the language server will index `@custom-media` rules and
+   * expose them for completion/hover/definition requests.
+   */
+  enableCustomMedia?: boolean
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
@@ -48,6 +59,7 @@ export const defaultSettings: CSSVariablesSettings = {
     '**/tests',
     '**/tmp',
   ],
+  enableCustomMedia: false,
 };
 
 const getAST = (filePath: string, content: string) => {
@@ -66,17 +78,21 @@ const getAST = (filePath: string, content: string) => {
 
 export default class CSSVariableManager {
   private cacheManager = new CacheManager<CSSVariable>();
+  private customMediaCache = new CacheManager<CSSCustomMedia>();
 
   public parseCSSVariablesFromText = async ({
     content,
     filePath,
+    settings,
   }: {
     content: string
     filePath: string
+    settings: CSSVariablesSettings
   }) => {
     try {
       // reset cache for this file
       this.cacheManager.clearFileCache(filePath);
+      this.customMediaCache.clearFileCache(filePath);
 
       const ast = getAST(filePath, content);
       const fileURI = pathToFileURL(filePath).toString();
@@ -109,6 +125,7 @@ export default class CSSVariableManager {
             return this.parseCSSVariablesFromText({
               content: cssText,
               filePath: url,
+              settings,
             });
           } catch (err) {
             console.error(err, `cannot fetch data from ${url}`);
@@ -116,6 +133,7 @@ export default class CSSVariableManager {
         })
       );
 
+      // parse variables declarations
       ast.walkDecls((decl) => {
         if (decl.prop.startsWith('--')) {
           const variable: CSSVariable = {
@@ -154,6 +172,36 @@ export default class CSSVariableManager {
           this.cacheManager.set(filePath, decl.prop, variable);
         }
       });
+
+      // parse custom-media rules and cache them.
+      if (settings.enableCustomMedia) {
+        ast.walkAtRules((atRule) => {
+          if (atRule.name === 'custom-media') {
+            // params format: "--name <media-query>"
+            const match = atRule.params.match(/^(--[\w-]+)\s+(.*)$/);
+            if (match) {
+              const cm: CSSCustomMedia = {
+                name: match[1],
+                params: match[2],
+                definition: {
+                  uri: fileURI,
+                  range: Range.create(
+                    Position.create(
+                      atRule.source.start.line - 1,
+                      atRule.source.start.column - 1
+                    ),
+                    Position.create(
+                      atRule.source.end.line - 1,
+                      atRule.source.end.column - 1
+                    )
+                  ),
+                },
+              };
+              this.customMediaCache.set(filePath, cm.name, cm);
+            }
+          }
+        });
+      }
     } catch (error) {
       console.error(`Error parsing file ${filePath}:`, error);
     }
@@ -161,7 +209,7 @@ export default class CSSVariableManager {
 
   public parseAndSyncVariables = async (
     workspaceFolders: string[],
-    settings = defaultSettings
+    settings: CSSVariablesSettings = defaultSettings
   ) => {
     for (const folderPath of workspaceFolders) {
       await fastGlob(settings.lookupFiles, {
@@ -176,6 +224,7 @@ export default class CSSVariableManager {
             return this.parseCSSVariablesFromText({
               content,
               filePath,
+              settings,
             });
           })
         );
@@ -231,10 +280,20 @@ export default class CSSVariableManager {
 
   public clearFileCache(filePath: string) {
     this.cacheManager.clearFileCache(filePath);
+    this.customMediaCache.clearFileCache(filePath);
   }
 
   public clearAllCache() {
     this.cacheManager.clearAllCache();
+    this.customMediaCache.clearAllCache();
+  }
+
+  public getAllCustomMedia() {
+    return this.customMediaCache.getAll();
+  }
+
+  public getCustomMedia(name: string) {
+    return this.customMediaCache.get(name);
   }
 
   /**

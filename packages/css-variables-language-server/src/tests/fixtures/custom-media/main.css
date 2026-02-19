@@ -1,0 +1,6 @@
+@custom-media --small-viewport (max-width: 30em);
+@custom-media --dark-theme (prefers-color-scheme: dark);
+
+:root {
+  --foo: bar;
+}

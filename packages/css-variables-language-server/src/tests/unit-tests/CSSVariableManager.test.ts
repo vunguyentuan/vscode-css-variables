@@ -1,4 +1,4 @@
-import CSSVariableManager, { CSSVariable } from '../../CSSVariableManager';
+import CSSVariableManager, { CSSVariable, defaultSettings } from '../../CSSVariableManager';
 import * as path from 'path';
 
 async function runTest(
@@ -208,5 +208,18 @@ describe('CSS Variable Manager', () => {
     expect(allVars.get('--child-nested').symbol.value).toEqual('var(--color-red-alias-3)');
     expect(allVars.get('--child-nested').color).toBeDefined();
     expect(allVars.get('--child-nested').color).toEqual(allVars.get('--color-red').color);
+  });
+
+  test('can parse @custom-media definitions when enabled', async () => {
+    const cssManager = new CSSVariableManager();
+    const settings = { ...defaultSettings, enableCustomMedia: true };
+
+    await cssManager.parseAndSyncVariables([
+      path.join(__dirname, '../fixtures/custom-media'),
+    ], settings as any);
+
+    const allMedia = cssManager.getAllCustomMedia();
+    expect(allMedia.get('--small-viewport').params).toEqual('(max-width: 30em)');
+    expect(allMedia.get('--dark-theme').params).toEqual('(prefers-color-scheme: dark)');
   });
 });
