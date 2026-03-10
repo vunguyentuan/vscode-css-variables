@@ -1,5 +1,11 @@
 # css-variables-language-server
 
+## 2.9.0
+
+### Minor Changes
+
+- df69abf: Fix sorting of variables with numeric components
+
 ## 2.8.4
 
 ### Patch Changes
