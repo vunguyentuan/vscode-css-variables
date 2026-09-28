@@ -23,6 +23,7 @@ export default defineConfig({
     'fast-glob',
     'less',
     'line-column',
+    'micromatch',
     'postcss',
     'postcss-less',
     'postcss-scss',

@@ -1,9 +1,9 @@
 {
-	"name": "vscode-css-variables",
+	"name": "css-variables-gong-fork",
 	"version": "2.8.3",
-	"displayName": "CSS Variable Autocomplete",
-	"description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more",
-	"publisher": "vunguyentuan",
+	"displayName": "CSS Variable Autocomplete (Gong local fork)",
+	"description": "Autocomplete CSS Variable support CSS, SCSS, LESS, PostCSS, VueJS, ReactJS and more. Patched fork of vunguyentuan.vscode-css-variables to fix CPU spikes in large monorepos: watchers now respect blacklistFolders, variable resolution is debounced, and config-change no longer triggers a full rescan for unrelated settings.",
+	"publisher": "gong-local-fork",
 	"engines": {
 		"vscode": "^1.106.0",
 		"node": ">=20.0.0",

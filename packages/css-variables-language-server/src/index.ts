@@ -15,6 +15,7 @@ import {
   TextEdit,
 } from 'vscode-languageserver/node';
 import * as fs from 'fs';
+import micromatch from 'micromatch';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import isColor from './utils/isColor';
 import { uriToPath } from './utils/protocol';
@@ -24,6 +25,28 @@ import { getCurrentWord, getCurrentWordInfo } from './utils/getCurrentWord';
 import { isInFunctionExpression } from './utils/isInFunctionExpression';
 import CSSVariableManager, { CSSVariablesSettings, defaultSettings } from './CSSVariableManager';
 import { formatHex } from 'culori';
+
+// The client's file watchers (**/*.css, **/*.scss, **/*.sass, **/*.less) are
+// registered workspace-wide and never respect cssVariables.blacklistFolders,
+// unlike the initial fast-glob scan. Re-apply the same blacklist here so
+// changes under node_modules/dist/etc. don't trigger a parse.
+const isBlacklisted = (filePath: string, blacklistFolders: string[]): boolean => {
+  const patterns = blacklistFolders.flatMap((pattern) => [pattern, `${pattern}/**`]);
+  return micromatch.isMatch(filePath, patterns, { dot: true });
+};
+
+// A single fs event burst (e.g. git checkout, pnpm install) can arrive as many
+// back-to-back onDidChangeWatchedFiles notifications. Each resolve pass walks
+// every cached variable in the workspace, so coalesce bursts into one pass.
+let resolveDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+const scheduleResolveVariableReferences = (manager: CSSVariableManager) => {
+  if (resolveDebounceTimer) {
+    clearTimeout(resolveDebounceTimer);
+  }
+  resolveDebounceTimer = setTimeout(() => {
+    manager.resolveVariableReferences();
+  }, 300);
+};
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -98,6 +121,7 @@ connection.onInitialized(async () => {
     .filter((path) => !!path);
 
   const settings = await getDocumentSettings();
+  lastCssVariablesSettingsSnapshot = JSON.stringify(settings);
 
   // parse and sync variables
   cssVariableManager.parseAndSyncVariables(validFolders || [], settings);
@@ -105,13 +129,29 @@ connection.onInitialized(async () => {
 
 let globalSettings = defaultSettings;
 
+// workspace/didChangeConfiguration fires for ANY VS Code setting change, not
+// just cssVariables.*, so only re-scan the whole workspace when the
+// cssVariables settings themselves actually changed.
+let lastCssVariablesSettingsSnapshot: string | undefined;
+
 // Cache the settings of all open documents
 const documentSettings: Map<string, Thenable<CSSVariablesSettings>> = new Map();
 
 connection.onDidChangeConfiguration(async (change) => {
   if (hasConfigurationCapability) {
-    // Reset all cached document settings
+    // Reset cached document settings so we re-fetch from the client, then
+    // check whether cssVariables settings actually changed before paying
+    // for a full cache clear + workspace re-scan.
     documentSettings.clear();
+
+    const settings = await getDocumentSettings();
+    const settingsSnapshot = JSON.stringify(settings);
+
+    if (settingsSnapshot === lastCssVariablesSettingsSnapshot) {
+      return;
+    }
+    lastCssVariablesSettingsSnapshot = settingsSnapshot;
+
     cssVariableManager.clearAllCache();
 
     const validFolders = await connection.workspace
@@ -121,8 +161,6 @@ connection.onDidChangeConfiguration(async (change) => {
           ?.map((folder) => uriToPath(folder.uri) || '')
           .filter((path) => !!path)
       );
-
-    const settings = await getDocumentSettings();
 
     // parse and sync variables
     cssVariableManager.parseAndSyncVariables(validFolders || [], settings);
@@ -153,27 +191,36 @@ documents.onDidClose((e) => {
 });
 
 connection.onDidChangeWatchedFiles(async (_change) => {
+  const settings = await getDocumentSettings();
+
+  const relevantChanges = _change.changes.filter((change) => {
+    const filePath = uriToPath(change.uri);
+    return !!filePath && !isBlacklisted(filePath, settings.blacklistFolders);
+  });
+
+  if (relevantChanges.length === 0) {
+    return;
+  }
+
   // update cached variables
   await Promise.all(
-    _change.changes.map(async (change) => {
+    relevantChanges.map(async (change) => {
       const filePath = uriToPath(change.uri);
-      if (filePath) {
-        // remove variables from cache
-        if (change.type === FileChangeType.Deleted) {
-          cssVariableManager.clearFileCache(filePath);
-        } else {
-          const content = fs.readFileSync(filePath, 'utf8');
-          await cssVariableManager.parseCSSVariablesFromText({
-            content,
-            filePath,
-          });
-        }
+      // remove variables from cache
+      if (change.type === FileChangeType.Deleted) {
+        cssVariableManager.clearFileCache(filePath);
+      } else {
+        const content = fs.readFileSync(filePath, 'utf8');
+        await cssVariableManager.parseCSSVariablesFromText({
+          content,
+          filePath,
+        });
       }
     })
   );
 
   // After all file changes are processed, resolve variable references
-  cssVariableManager.resolveVariableReferences();
+  scheduleResolveVariableReferences(cssVariableManager);
 });
 
 // This handler provides the initial list of the completion items.
