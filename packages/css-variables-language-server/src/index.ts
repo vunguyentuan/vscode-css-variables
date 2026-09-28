@@ -15,7 +15,9 @@ import {
   TextEdit,
 } from 'vscode-languageserver/node';
 import * as fs from 'fs';
+import fastGlob from 'fast-glob';
 import micromatch from 'micromatch';
+import * as path from 'path';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import isColor from './utils/isColor';
 import { uriToPath } from './utils/protocol';
@@ -27,12 +29,30 @@ import CSSVariableManager, { CSSVariablesSettings, defaultSettings } from './CSS
 import { formatHex } from 'culori';
 
 // The client's file watchers (**/*.css, **/*.scss, **/*.sass, **/*.less) are
-// registered workspace-wide and never respect cssVariables.blacklistFolders,
-// unlike the initial fast-glob scan. Re-apply the same blacklist here so
-// changes under node_modules/dist/etc. don't trigger a parse.
-const isBlacklisted = (filePath: string, blacklistFolders: string[]): boolean => {
-  const patterns = blacklistFolders.flatMap((pattern) => [pattern, `${pattern}/**`]);
-  return micromatch.isMatch(filePath, patterns, { dot: true });
+// registered workspace-wide and are unaware of both cssVariables.lookupFiles
+// and cssVariables.blacklistFolders - only the initial fast-glob scan uses
+// them. Re-derive the same inclusion decision here so live edits behave
+// exactly like fastGlob(lookupFiles, { ignore: blacklistFolders, cwd }):
+// dynamic glob patterns are subject to the blacklist, but an explicit static
+// file path in lookupFiles always matches regardless of the blacklist
+// (verified directly against fast-glob - it never applies `ignore` to
+// non-dynamic patterns, since those are resolved as plain existence checks).
+const isIncludedFile = (
+  filePath: string,
+  lookupFiles: string[],
+  blacklistFolders: string[],
+  workspaceFolders: string[]
+): boolean => {
+  const ignorePatterns = blacklistFolders.flatMap((pattern) => [pattern, `${pattern}/**`]);
+  const isBlacklisted = micromatch.isMatch(filePath, ignorePatterns, { dot: true });
+
+  return workspaceFolders.some((folderPath) =>
+    lookupFiles.some((pattern) =>
+      fastGlob.isDynamicPattern(pattern)
+        ? !isBlacklisted && micromatch.isMatch(filePath, path.join(folderPath, pattern), { dot: true })
+        : path.resolve(folderPath, pattern) === filePath
+    )
+  );
 };
 
 // A single fs event burst (e.g. git checkout, pnpm install) can arrive as many
@@ -192,10 +212,13 @@ documents.onDidClose((e) => {
 
 connection.onDidChangeWatchedFiles(async (_change) => {
   const settings = await getDocumentSettings();
+  const workspaceFolders = await connection.workspace
+    .getWorkspaceFolders()
+    .then((folders) => folders?.map((folder) => uriToPath(folder.uri) || '').filter((p) => !!p) || []);
 
   const relevantChanges = _change.changes.filter((change) => {
     const filePath = uriToPath(change.uri);
-    return !!filePath && !isBlacklisted(filePath, settings.blacklistFolders);
+    return !!filePath && isIncludedFile(filePath, settings.lookupFiles, settings.blacklistFolders, workspaceFolders);
   });
 
   if (relevantChanges.length === 0) {
